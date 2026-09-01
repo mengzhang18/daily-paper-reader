@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-08-03 ~ 2026-09-01</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-01</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 21 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 13 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>10</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>11</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>5</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>8</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-01 02:17:07 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-01 21:29:37 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,7 +69,9 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日共读21篇，精读10篇、速读11篇，其中两篇语义算子执行引擎获满分评价。最值得关注的方向是《From Interpretation to Compilation》的编译式执行与《SAGE》的SQL中AI函数自适应执行，均达10/10。建议普通读者优先从语义算子系统的编译优化入手，再延伸至向量-图-关系融合的Omni RAG实践。</p>
+<p>今日13篇论文聚焦AI查询编译与结构化数据检索，精读5篇、速读8篇。</p>
+<p>最值得看：双8分《AI Query Compilation》统一优化查询执行，《Guided Table Retrieval》提升数据搜索；速读中Text-to-SQL的ReAct简化架构与TraceSQL验证同样亮眼。</p>
+<p>下一步可优先尝试轻量级Text-to-SQL方案，并结合追踪验证提升可靠性。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -78,12 +80,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">10 篇</strong>
+    <strong class="dpr-home-dashboard-count">5 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="From Interpretation to Compilation: A Compilation-Based Execution Engine for Semantic Operator Systems">From Interpretation to Compilation: A Compilation-Based Execution Engine for Semantic Operator Systems</span></li><li><span class="dpr-home-dashboard-paper-title" title="SAGE: A Unified Algebra and Self-Adaptive Execution for AI Functions in SQL">SAGE: A Unified Algebra and Self-Adaptive Execution for AI Functions in SQL</span></li><li><span class="dpr-home-dashboard-paper-title" title="Tytan: Interactive Neurosymbolic Construction of Analytic Semantic Schemas from Relational Data">Tytan: Interactive Neurosymbolic Construction of Analytic Semantic Schemas from Relational Data</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="AI Query Compilation for Unified and Optimized Execution">AI Query Compilation for Unified and Optimized Execution</span></li><li><span class="dpr-home-dashboard-paper-title" title="Guided Table Retrieval for Structured Data Search">Guided Table Retrieval for Structured Data Search</span></li><li><span class="dpr-home-dashboard-paper-title" title="GEM: A Generative Embedding Model Bridging Reasoning and Retrieval">GEM: A Generative Embedding Model Bridging Reasoning and Retrieval</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">sdl <strong>10</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">sdl <strong>5</strong></span></div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -91,12 +93,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">11 篇</strong>
+    <strong class="dpr-home-dashboard-count">8 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="A General Sufficient Condition for Rewriting Horn-ALCHI Atomic Queries into GQL">A General Sufficient Condition for Rewriting Horn-ALCHI Atomic Queries into GQL</span></li><li><span class="dpr-home-dashboard-paper-title" title="EXCISE: Query-Side Exclusion for Late-Interaction Retrieval">EXCISE: Query-Side Exclusion for Late-Interaction Retrieval</span></li><li><span class="dpr-home-dashboard-paper-title" title="AkasicDB: Demonstrating Omni RAG with a Unified Vector-Graph-Relational DBMS">AkasicDB: Demonstrating Omni RAG with a Unified Vector-Graph-Relational DBMS</span></li></ul>
+<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="DEPT: Document Embedding Preservation Tuning for Unified Query Expansion and Retrieval">DEPT: Document Embedding Preservation Tuning for Unified Query Expansion and Retrieval</span></li><li><span class="dpr-home-dashboard-paper-title" title="TraceSQL: Traceable Answerability Estimation for Reference-Free Text-to-SQL Verification">TraceSQL: Traceable Answerability Estimation for Reference-Free Text-to-SQL Verification</span></li><li><span class="dpr-home-dashboard-paper-title" title="Iteration Without Elaboration: A Simple ReAct Architecture Suffices for Text-to-SQL Generation">Iteration Without Elaboration: A Simple ReAct Architecture Suffices for Text-to-SQL Generation</span></li></ul>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">sdl <strong>11</strong></span></div>
+  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">sdl <strong>8</strong></span></div>
 </section>
 </div>
 

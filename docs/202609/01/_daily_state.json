@@ -1,0 +1,217 @@
+{
+  "date": "20260901",
+  "date_label": "",
+  "generated_at": "2026-09-01 21:29:37 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2608.10139v1",
+      "route": "202609/01/2608.10139v1-ai-query-compilation-for-unified-and-optimized-execution",
+      "title": "AI Query Compilation for Unified and Optimized Execution",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sdl"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "将SQL与LLM推理统一编译为张量图，在查询执行中引入语义算子",
+      "first_seen_at": "2026-09-01 21:29:37 UTC",
+      "updated_at": "2026-09-01 21:29:37 UTC"
+    },
+    {
+      "paper_id": "2608.11644v2",
+      "route": "202609/01/2608.11644v2-guided-table-retrieval-for-structured-data-search",
+      "title": "Guided Table Retrieval for Structured Data Search",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sdl"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "基于LLM的自然语言数据库查询表格检索与连接发现，语义查询处理流水线",
+      "first_seen_at": "2026-09-01 21:29:37 UTC",
+      "updated_at": "2026-09-01 21:29:37 UTC"
+    },
+    {
+      "paper_id": "2608.13200v2",
+      "route": "202609/01/2608.13200v2-gem-a-generative-embedding-model-bridging-reasoning-and-retrieval",
+      "title": "GEM: A Generative Embedding Model Bridging Reasoning and Retrieval",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sdl"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "显式推理查询意图以增强检索嵌入",
+      "first_seen_at": "2026-09-01 21:29:37 UTC",
+      "updated_at": "2026-09-01 21:29:37 UTC"
+    },
+    {
+      "paper_id": "2608.13926v1",
+      "route": "202609/01/2608.13926v1-never-the-number-structural-abstention-for-ai-systems-whose-answers-are-consumed-as-fact",
+      "title": "Never the Number: Structural Abstention for AI Systems Whose Answers Are Consumed as Fact",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sdl"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "将LLM集成到数据库查询接口并支持弃权的方案",
+      "first_seen_at": "2026-09-01 21:29:37 UTC",
+      "updated_at": "2026-09-01 21:29:37 UTC"
+    },
+    {
+      "paper_id": "2608.15396v1",
+      "route": "202609/01/2608.15396v1-large-language-model-assisted-operational-monitoring-for-battery-energy-storage-system-integrated-power-distribution-networks",
+      "title": "Large Language Model Assisted Operational Monitoring for Battery Energy Storage System Integrated Power Distribution Networks",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sdl"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "该框架用大语言模型将运维人员自然语言问题转换为经过校验的SQL查询并检索遥测数据库，体现LLM驱动的语义查询处理。",
+      "first_seen_at": "2026-09-01 21:29:37 UTC",
+      "updated_at": "2026-09-01 21:29:37 UTC"
+    },
+    {
+      "paper_id": "2608.17632v1",
+      "route": "202609/01/2608.17632v1-dept-document-embedding-preservation-tuning-for-unified-query-expansion-and-retrieval",
+      "title": "DEPT: Document Embedding Preservation Tuning for Unified Query Expansion and Retrieval",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sdl"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "用单一解码器LLM同时完成查询扩展与稠密检索，直接面向非结构化查询的语义理解。",
+      "first_seen_at": "2026-09-01 21:29:37 UTC",
+      "updated_at": "2026-09-01 21:29:37 UTC"
+    },
+    {
+      "paper_id": "2608.17795v2",
+      "route": "202609/01/2608.17795v2-tracesql-traceable-answerability-estimation-for-reference-free-text-to-sql-verification",
+      "title": "TraceSQL: Traceable Answerability Estimation for Reference-Free Text-to-SQL Verification",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sdl"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "对无参考Text-to-SQL结果进行可追踪的可回答性估计，是可靠LLM与数据库集成的重要组成部分。",
+      "first_seen_at": "2026-09-01 21:29:37 UTC",
+      "updated_at": "2026-09-01 21:29:37 UTC"
+    },
+    {
+      "paper_id": "2608.22651v1",
+      "route": "202609/01/2608.22651v1-iteration-without-elaboration-a-simple-react-architecture-suffices-for-text-to-sql-generation",
+      "title": "Iteration Without Elaboration: A Simple ReAct Architecture Suffices for Text-to-SQL Generation",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sdl"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "通过ReAct推理将自然语言查询转换为SQL",
+      "first_seen_at": "2026-09-01 21:29:37 UTC",
+      "updated_at": "2026-09-01 21:29:37 UTC"
+    },
+    {
+      "paper_id": "2608.22772v1",
+      "route": "202609/01/2608.22772v1-spoc-sql-stage-wise-preference-optimization-for-controllable-text-to-sql",
+      "title": "SPOC-SQL: Stage-wise Preference Optimization for Controllable Text-to-SQL",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sdl"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "提出基于大语言模型的分阶段优化方法来生成SQL，直接涉及将LLM集成到数据库查询生成引擎。",
+      "first_seen_at": "2026-09-01 21:29:37 UTC",
+      "updated_at": "2026-09-01 21:29:37 UTC"
+    },
+    {
+      "paper_id": "2608.22830v1",
+      "route": "202609/01/2608.22830v1-beyond-the-harness-end-to-end-optimization-of-context-artifacts-for-enterprise-text-to-sql",
+      "title": "Beyond the Harness: End-to-End Optimization of Context Artifacts for Enterprise Text-to-SQL",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sdl"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向企业文本到SQL的上下文优化，对LLM驱动的数据库查询处理至关重要",
+      "first_seen_at": "2026-09-01 21:29:37 UTC",
+      "updated_at": "2026-09-01 21:29:37 UTC"
+    },
+    {
+      "paper_id": "2608.22980v1",
+      "route": "202609/01/2608.22980v1-hypergraph-embedding-indexing-for-efficient-dense-vector-retrieval",
+      "title": "Hypergraph Embedding Indexing for Efficient Dense Vector Retrieval",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sdl"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "基于超图嵌入索引的高效语义稠密检索",
+      "first_seen_at": "2026-09-01 21:29:37 UTC",
+      "updated_at": "2026-09-01 21:29:37 UTC"
+    },
+    {
+      "paper_id": "2608.24060v1",
+      "route": "202609/01/2608.24060v1-sqlite-is-enough-lexical-semantic-and-hybrid-search-with-scrydb",
+      "title": "SQLite is Enough. Lexical, Semantic, and Hybrid Search with scrydb",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sdl"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "在SQLite内实现基于向量的语义查询处理，支持词法、语义与混合检索",
+      "first_seen_at": "2026-09-01 21:29:37 UTC",
+      "updated_at": "2026-09-01 21:29:37 UTC"
+    },
+    {
+      "paper_id": "2608.27017v2",
+      "route": "202609/01/2608.27017v2-proretrieval-learning-to-orchestrate-hybrid-search-via-executable-program-synthesis",
+      "title": "ProRetrieval: Learning to Orchestrate Hybrid Search via Executable Program Synthesis",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sdl"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "合成SQL算子与向量检索结合的混合检索程序，属于语义查询处理技术",
+      "first_seen_at": "2026-09-01 21:29:37 UTC",
+      "updated_at": "2026-09-01 21:29:37 UTC"
+    }
+  ]
+}

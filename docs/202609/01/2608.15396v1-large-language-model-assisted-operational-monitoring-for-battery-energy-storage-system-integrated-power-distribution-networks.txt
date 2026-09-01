@@ -1,0 +1,222 @@
+Title: Large Language Model Assisted Operational Monitoring for Battery Energy Storage System Integrated Power Distribution Networks
+
+URL Source: https://arxiv.org/pdf/2608.15396v1
+
+Published Time: Tue, 18 Aug 2026 00:49:12 GMT
+
+Number of Pages: 6
+
+Markdown Content:
+> 1
+
+# Large Language Model Assisted Operational Monitoring for Battery Energy Storage System Integrated Power Distribution Networks 
+
+Azmeer Akhtar, Md Fazley Rafy , Member, IEEE , and Anurag K. Srivastava , Fellow, IEEE 
+
+Abstract —Battery energy storage systems (BESS) are increas-ingly used in distribution networks for voltage regulation and demand response, which increases the volume and complexity of operational telemetry available to grid operators. This paper presents an AI-enabled monitoring framework that connects a large language model (LLM) interface with a structured telemetry database for BESS-integrated distribution system anal-ysis. Operator questions are submitted in natural language and translated into validated SQL queries using predefined database schema information and approved KPI views. Retrieved measurements, including bus voltages, state of charge, active power, and reactive power, are evaluated against engineering constraints for voltage limits, BESS operation, and demand response tracking. The framework is validated using hardware-in-the-loop co-simulation data from a BESS-equipped distribu-tion feeder operating under reactive power-based voltage control and price-driven demand response. Case studies show that the framework generates valid database queries, identifies repeated voltage violations, detects reactive power overshoot, and evaluates active-power tracking performance. The results show that LLM-assisted monitoring can connect structured grid telemetry with automated engineering assessment for BESS operation analysis. 
+
+Index Terms —Battery energy storage systems, large language model, natural language processing, SQL generation, distribution system monitoring, hardware-in-the-loop, voltage regulation, de-mand response, Grid operator support 
+
+I. I NTRODUCTION 
+
+# DISTRIBUTION systems are undergoing a structural change as distributed energy resources (DERs), battery energy storage systems (BESS) deployed as non-wire alterna-tives (NWAs), inverter-based resources, and responsive loads become active participants in feeder operation [1], [2]. Con-ventional distribution monitoring was designed primarily for radial power delivery, limited field measurements, and operator review of alarms from supervisory control and data acquisition systems. DER-rich feeders now exhibit bidirectional power flow, time-varying voltage profiles, rapid changes in net load, and control interactions among inverter-based assets [3]. These operating conditions increase the amount of telemetry that grid operators must interpret when assessing voltage regulation, de-mand response performance, battery dispatch, and device-level constraint violations [1]. BESS operation adds another layer of monitoring complexity because each storage asset couples electrical, control, and energy-state variables [4]. Active power dispatch affects demand response and peak reduction objec-tives, while reactive power support, often managed through mechanisms such as droop control, affects voltage regulation and inverter capability limits [5]. The same BESS unit must also satisfy state-of-charge bounds, apparent-power capability constraints, ramp-rate limits, and control-mode requirements 
+
+The authors are with the Lane Department of Computer Science and Electrical Engineering, West Virginia University, Morgantown, WV 26505, USA. This work was supported in part by the U.S. Department of Energy (DoE) and the Appalachian Regional Commission (ARC). 
+
+[4]. As a result, operator assessment requires simultaneous interpretation of measured active power, measured reactive power, power references, bus voltages, state of charge, operat-ing mode, and event timing. Manual inspection of these vari-ables becomes inefficient when measurements are collected across multiple nodes, phases, devices, and control intervals. The growth of cyber-physical telemetry and IoT-based in-tegration further increases the operator burden [6]. Modern BESS-integrated testbeds and field deployments generate high-frequency data streams from phasor measurements, inverter controllers, battery management systems, communication net-works, and event logs. Furthermore, as these systems become more reliant on communication networks, operators must monitor for cyber-resilience, distinguishing between normal physical grid fluctuations and cyber anomalies such as false data injection or communication delays [6]. These data are often stored in structured databases, but operators typically need database-specific knowledge to retrieve the correct time windows, node identifiers, constraint flags, and aggregated performance metrics. This creates a gap between the avail-ability of operational data and its practical use for real-time or post-event engineering assessment. Large language models (LLMs) offer a potential interface layer between operator intent and structured grid telemetry, though their application requires strict guardrails to prevent unverified text genera-tion [7]. Instead of requiring an operator to manually write database queries, an LLM-assisted tool can translate natural-language questions into structured queries, retrieve relevant measurements, and summarize the results [8]. For BESS-integrated distribution systems, this capability can support questions such as identifying nodes with repeated voltage violations, detecting reactive power overshoot during voltage-control operation, and evaluating active-power tracking during demand response events. To mitigate the risk of hallucination common in broad language models, the value of such a tool depends on controlled query generation, access to validated database views, and assessment logic grounded in strict power-system operating limits [7], [9]. Traditional monitoring platforms address only part of this problem. Most existing tools rely on predefined dashboards, alarm lists, and manually configured database queries [10]. These tools work well when the operator already knows which device, variable, and time window must be checked. They become less effective when BESS operation must be diagnosed across several related signals. A single operat-ing event may involve bus voltage, active-power command, reactive-power command, measured inverter response, SOC, control mode, and event timing. Manual review of these variables can slow engineering assessment, especially when the data are distributed across ADMS, DERMS, historian, and database-centered monitoring systems [11], [12]. Prior work has improved DER and distribution-system observability through state estimation, event detection, anomaly detection, 979-8-3315-5720-1/26/$31.00 ©2026 IEEE arXiv:2608.15396v1 [cs.AI] 15 Aug 2026 2
+
+forecasting, and control-performance assessment [13]. These methods automate specific tasks, but they usually operate as fixed-function modules [14]. They do not convert an oper-ator’s natural-language question into a database operation. In this context, SQL-based analysis can provide a practical approach for connecting natural-language operator questions to structured grid telemetry to retrieve time windows, ag-gregate measurements, rank violations, and compute tracking errors from high-rate telemetry [13]. However, SQL use re-quires knowledge of table schemas, joins, filters, aggregation functions, and variable definitions. This requirement creates a practical barrier between stored BESS telemetry and operator-facing engineering questions. Recent LLM applications in power systems have examined planning support, document retrieval, grid-code interpretation, contingency analysis, oper-ator training, and natural-language interfaces for simulation and analytics workflows [7], [15], [16], [17]. These studies show that LLMs can help users access technical information and interact with computational tools. However, unrestricted LLM outputs can produce invalid commands or unsupported engineering statements when they are not tied to approved data sources and operating constraints [7]. For BESS-integrated distribution monitoring, an unresolved gap remains. Existing tools do not provide a controlled natural-language interface that converts operator questions into validated read-only SQL, retrieves time-indexed cyber-physical telemetry, and evaluates the results against voltage, active-power, reactive-power, SOC, and demand-response constraints. This gap motivates the pro-posed LLM-assisted monitoring framework, which combines schema-constrained query generation, SQL validation, KPI-view execution, and engineering constraint assessment for BESS operation analysis. Without the LLM interface, these monitoring tasks require the operator to manually identify the relevant KPI view, select the correct node and time window, write SQL filters or joins, aggregate timestamped records, compare the returned values with operating limits, and translate the numerical output into an engineering assessment. This process is feasible for a database expert, but it slows operator-level analysis when questions combine voltage violations, reactive-power over-shoot, active-power tracking, SOC limits, and data-confidence indicators. The proposed framework uses the LLM only as a controlled interface between operator intent and structured database queries; numerical evaluation remains governed by validated SQL execution and deterministic constraint checks. This paper addresses this need by presenting an AI-enabled monitoring framework that connects a natural-language oper-ator interface to a structured PostgreSQL telemetry database for BESS-integrated distribution feeder analysis. The main contributions of this paper are as follows:  
+
+> •
+
+Developed a schema-constrained LLM-to-SQL monitoring pipeline for BESS-integrated distribution system telemetry. The pipeline converts natural-language operator questions into validated read-only SQL queries and restricts execution to predefined KPI views.  
+
+> •
+
+Integrated an engineering constraint assessment layer with the query pipeline to evaluate retrieved measurements against voltage regulation, active-power tracking, reactive-power tracking, SOC, and demand-response operating lim-its.  
+
+> •
+
+Validated using HIL co-simulation from a BESS-integrated distribution feeder under voltage-control and demand-response scenarios. The case studies evaluate voltage viola-tion identification, reactive power overshoot detection, and active-power reference tracking from structured operational data. II. S YSTEM ARCHITECTURE AND METHODOLOGY 
+
+The proposed framework connects operator-facing natural-language queries with structured BESS telemetry stored in a PostgreSQL database. The architecture separates three func-tions: natural-language translation, database execution, and engineering constraint evaluation. This separation prevents the language model from directly interpreting raw telemetry without database validation or power-system constraint checks. The LLM does not access arbitrary database objects. Instead, it receives predefined schema context, summarized in Table II, and generates read-only SQL queries for approved KPI views. The generated query is validated before execution and thus grounds the natural-language interface in measured telemetry, predefined schema definitions, and operating constraints. 
+
+A. Operational Constraint Framework 
+
+The framework converts retrieved telemetry into engineer-ing assessments using the deterministic constraint logic in Table I. Retrieved measurements are evaluated against pre-defined power-system operating bounds rather than subjective language-model judgment [18]. Voltage regulation is assessed by comparing bus voltage with the allowable per-unit oper-ating range. Active-power tracking is assessed by comparing measured BESS active power, Pmeas , with the active-power reference, Pref , during demand-response operation. Reactive-power response is assessed by comparing measured reactive power, Qmeas , with the reactive-power reference, Qref , and by checking reactive-power overshoot during voltage-control operation. Battery energy state is assessed using SOC limits to determine whether the BESS remains within its config-ured operating range. The framework also includes telemetry-confidence checks using the previously defined resiliency metric [6], when the corresponding fields are available. As shown in Table II, latency, anomaly flags, attack labels, and resilience scores can qualify the interpretation of retrieved measurements. These indicators help separate physical oper-ating violations from intervals affected by delayed, stale, or abnormal telemetry. 
+
+B. LLM-Assisted Query Pipeline 
+
+In this implementation, the LLM module used 
+
+gpt-4o-mini (OpenAI, 2024) with deterministic decoding settings to reduce output variability during SQL generation. Due to free tier account limitations, access was restricted to 
+
+gpt-4o-mini (or legacy gpt-3.5-turbo ) rather than flagship models such as GPT-5 or advanced reasoning tools. Algorithm 1 summarizes the query generation and validation workflow. The prompt provided to the LLM included four controlled inputs: the operator’s natural-language question, the approved KPI view names [19], the schema fields listed in Table II, and explicit safety instructions requiring the output to be a single read-only PostgreSQL SELECT query. The model was instructed not to generate INSERT, UPDATE, DELETE, DROP, ALTER, CREATE, or multi-statement SQL commands, and not to reference database tables, views, columns, or joins outside the approved monitoring schema. The core prompt template was: “Given the following approved BESS telemetry views and schema fields, generate one PostgreSQL SELECT query that answers the operator question. Use only the provided views and columns. Return SQL only. Do not modify the database.” The generated SQL statement was then inspected by a rule-based validation layer before database execution. The validator rejected data-modification commands, unsupported views, unauthorized 3
+
+Fig. 1. LLM-assisted monitoring framework for BESS-integrated distribution system analysis. Operator questions are translated into validated SQL queries, evaluated against engineering constraints, and returned as text, dashboard, or plot/table outputs using operating data from the prior HIL testbed. TABLE I OPERATIONAL CONSTRAINT FRAMEWORK FOR BESS M ONITORING 
+
+Operational Metric Evaluation Criteria Assessment Output 
+
+Voltage Regu-lation Vmin ≤ Vbus ≤ Vmax 
+
+(e.g., 0.95 to 1.05 p.u.) Violation count, vul-nerable node ranking Active-Power Tracking |Pmeas − Pref | ≤ ϵP Tracking error, DR performance status Reactive-Power Response 
+
+|Qmeas − Qref | ≤ ϵQ
+
+Check Q-overshoot Reactive tracking status, overshoot flag Battery Energy State SOC min ≤ SOC ≤
+
+SOC max 
+
+Available energy headroom, limit compliance Telemetry Con-fidence Latency ≤ τmax 
+
+Cyber-Anomaly Flag = 0 Data-confidence qualifier 
+
+columns, multi-statement outputs, unsupported joins, and query patterns outside the approved monitoring scope. After validation, the SQL statement was executed against the PostgreSQL database, and the retrieved result set was evaluated by the engineering constraint layer described in Section II-A. The final output was formatted as a concise operational assessment for the operator. III. C YBER -P HYSICAL CO-S IMULATION SETUP 
+
+The proposed framework is evaluated using time-series operating data generated from a real-time cyber-physical co-simulation environment. Rather than relying on static records, this setup couples feeder-level power-flow analysis with edge-controller communication and HIL-based inverter emulation to produce synchronized BESS operating measurements. The co-simulation architecture builds upon previously established frameworks for cyber-resilient BESS operation and edge-controller-based HIL validation [6], [20]. The physical dis-tribution network is modeled in OpenDSS using a modified IEEE 123-node unbalanced test feeder with a 4.16 kV primary system, where A BESS unit is connected at each of these secondary terminal buses. These units operate under voltage-control and demand-response scenarios, producing measured 
+
+TABLE II POSTGRE SQL S CHEMA FEATURES FOR LLM T ELEMETRY QUERIES 
+
+SQL Column Name Data Type Description 
+
+Metadata and Spatiotemporal Identifiers 
+
+ts Timestamp Time index for windowed SQL queries. 
+
+run_id String Experimental scenario identifier. 
+
+node_id String Feeder node for localized tracking. 
+
+device_id String BESS or inverter endpoint identifier. 
+
+control_mode Categorical E.g., Volt-VAR, Demand Response. 
+
+Cyber-Physical Telemetry and States 
+
+v_bus_pu Numeric Per-unit bus voltage mag-nitude. 
+
+p_ref_kw , p_meas_kw Numeric Active-power command and response. 
+
+q_ref_kvar , q_meas_kvar Numeric Reactive-power command and response. 
+
+soc_percent Numeric Battery state of charge available. 
+
+price_signal Numeric Economic or DR dispatch trigger. 
+
+Derived KPIs and Constraint Flags 
+
+voltage_viol_flag Boolean Indicates Vbus operating out of bounds. 
+
+p_tracking_error Numeric Deviation between Pmeas 
+
+and Pref .
+
+max_q_overshoot Numeric Peak reactive overshoot in-dicator. 
+
+Cyber-Resilience and Trust Indicators 
+
+latency_ms Numeric End-to-end communication delay. 
+
+anomaly_flag Boolean Suspected cyber/physical anomaly. 
+
+attack_type Categorical Delay, spoofing, or data manipulation. 
+
+resilience_score Numeric Composite data confidence metric. 
+
+bus voltage, active-power response, reactive-power response, SOC, reference commands, and event-status records needed to evaluate the LLM-assisted monitoring framework. OpenDSS solves the feeder power flow and updates the network voltage response under changing BESS injections, while Typhoon 4
+
+Algorithm 1: LLM-Driven Grid Operations Data Re-trieval and Assessment                                                                               
+
+> Input: Grid operator question Q; PostgreSQL database D
+> Output: Textual assessment T; dashboard visualization V
+> 1: Receive natural language question Qfrom the frontend interface
+> ▷LLM Agent Processing
+> 2: Analyze Qto interpret the grid and battery query context
+> 3: Generate SQL command Sfrom the interpreted context of Q▷Database Execution
+> 4: Validate Sagainst approved views and permitted command types
+> 5: Execute Sagainst D; retrieve result set R▷Constraint Evaluation and Assessment
+> 6: Evaluate Ragainst engineering constraint library
+> 7: Format Rinto time-series visualization V
+> 8: Synthesize Rand Qto generate concise textual assessment T
+> 9: Return Vand Tto the operator frontend TABLE III BATCH -L EVEL VALIDATION OF LLM-TO -SQL Q UERY GENERATION
+> Metric Definition Result
+> SQL validity Generated query is syntactically valid PostgreSQL. 20/20 Approved-view compliance Query uses only approved KPI views and schema fields. 20/20 Execution success Valid query executes without database er-ror. 20/20 Semantic correctness Query retrieves the intended KPI, node, time window, or aggregation. 19/20 Invalid-query rejection Unsafe or unsupported prompts are re-jected by the validator. 7/10 Hallucinated field/view rate Query references a non-existing field or unapproved view. 30%
+
+HIL represents the localized BESS inverter response. The HIL model returns measured inverter outputs corresponding to the controller references. The communication layer uses Raspberry Pi single-board computers as edge controllers, replacing the earlier software-based network emulation ap-proach. Each Raspberry Pi functions as an MQTT client and exchanges voltage measurements, active- and reactive-power setpoints, measured BESS responses, synchronization signals, and device-level records through assigned MQTT topics. The use of physical edge controllers allows the operating data to include communication delay, jitter, anomaly indicators, and data-confidence fields when available. During each simulation run, the MQTT message stream is captured and written to the PostgreSQL database using the structured schema in Table II. The database records preserve the timestamp, run identi-fier, simulation step, node identifier, BESS device identifier, feeder-bus and secondary-bus labels, control mode, voltage, active power, reactive power, SOC, price signal, demand-response flag, and derived KPI fields. The database also stores computed quantities such as voltage-violation flags, active-power tracking error, reactive-power tracking error, and max-imum reactive-power overshoot. This data-recording process provides a clean, time-indexed operational database for the LLM-assisted query pipeline, while the LLM remains outside the closed-loop control process and is used only for post-simulation monitoring, SQL-based retrieval, and constraint-based engineering assessment. IV. C ASE STUDY AND RESULTS 
+
+In the manual baseline, the operator must identify the relevant KPI view, select the node, device, and time window, write or modify SQL filters, aggregate timestamped records, compare the returned values with operating limits, and pre-pare the engineering interpretation. The proposed framework automates the query formulation, retrieval, and constraint-assessment steps while preserving read-only database access                               
+
+> TABLE IV FUNCTIONAL COMPARISON WITH A MANUAL MONITORING BASELINE
+> Task Manual SQL/dashboard workflow Proposed framework Query formulation Operator writes SQL or selects filters Natural-language query converted to SQL Schema use Requires view and field knowledge Uses approved schema context Data retrieval Manual node, device, and time-window se-lection Validated query retrieves required telemetry Constraint check Manual comparison with voltage, SOC, and tracking limits Deterministic constraint layer evaluates results Invalid request handling Depends on user re-view or database error Validator blocks un-supported SQL Output Manual interpretation and plotting Text, dashboard, or plot/table assessment
+
+and deterministic engineering checks. This comparison is functional rather than time-based; a formal operator-timing and usability study against deployed ADMS/DERMS dash-boards is left for future work. The proposed framework was evaluated using telemetry collected from a hardware-in-the-loop co-simulation of a BESS operating under reactive power-based voltage control and price-driven demand response. The evaluation includes two parts. First, a batch prompt suite was used to test SQL validity, approved-view compliance, execution success, semantic correctness, invalid-query rejec-tion, hallucinated field or view references, and rejection of database-modification requests. These aggregate LLM-to-SQL validation results are reported in Table III. Second, four de-tailed case-study prompts were used to demonstrate end-to-end engineering assessment for voltage-duration analysis, voltage-vulnerable node ranking, reactive-power overshoot coinci-dence, and demand-response active-power tracking. Table IV summarizes the functional difference between the proposed workflow and a manual SQL/dashboard monitoring baseline. These prompts were selected because each requires a different database operation, including duration reconstruction, node-level ranking, temporal coincidence checking, or run-level tracking-error aggregation. In the database, a record refers to a single timestamped row of telemetry sampled at 1-second intervals, while a violation event refers to a contiguous block of consecutive records during which the monitored variable remained outside its operating bound. This distinction is used consistently across all case studies below. 
+
+A. Case A: Voltage Stability Duration Assessment 
+
+The following prompt was submitted to the framework: 
+
+“For the most voltage-vulnerable node in this run, how long did it stay within and outside the acceptable voltage limits?” 
+
+The framework generated a SQL query targeting the 
+
+v_voltage_violations view. It collected the times where the voltage fell outside the 0.95–1.05 pu operating range. The framework found that the violations occured at 1,125 timestamps, identifying Node 56 as the most vulnerable location in the network, with a worst-case undervoltage of 0.9302 pu recorded at 2026-04-01 21:42:45 UTC, with a difference of 0.0198 pu below the lower bound. The duration of this violation occurred approximately for 1,000 seconds (≈16.7 minutes). The framework evaluated the result, utilizing Table I as reference, to generated the following engineering assessment: 
+
+”The most voltage-vulnerable node in this run is node id 56 (all three phases), which exhibits the largest deviation from the 5
+
+acceptable band. Based on the run metrics, it spent about 1000 seconds ( ≈16.7 minutes) outside the acceptable voltage limits (0.95–1.05 pu). The worst observed point was an undervoltage of 0.9302 pu at 2026-04-01 21:42:45 UTC, corresponding to a 0.0198 pu deviation below the 0.95 pu limit. Condition label: vulnerable . Recommendation: prioritize voltage sup-port at/near Node 56 (e.g., adjust regulator/LTC setpoints, add/retune capacitor or inverter Volt-VAR control, and check feeder loading around the 21:39–21:43 UTC interval) to reduce the duration and depth of undervoltage.” 
+
+The voltage control response during this interval is shown in Fig. 2, confirming the the undervoltage condition at Node 56. 
+
+> Fig. 2. Voltage control response at Node 56 during the evaluated run, showing sustained undervoltage excursions below the 0.95 pu lower operating bound.
+
+B. Case B: Identification of the Most Voltage-Vulnerable Node 
+
+The following prompt was submitted: 
+
+“Which node had the most voltage violations in this run, and what were the violation statistics?” 
+
+The framework generated a SQL query that collects data from violation statistics across all monitored buses and ranked nodes by total violation count. The query returned one sum-mary row per node. Node 56 was again identified as the most vulnerable node, recording 621 violation events, all of which were undervoltage (zero overvoltage events). The voltage at Node 56 ranged from 0.9302 pu to 0.9499 pu with a mean of 0.9455 pu, and a maximum single-sample deviation of 0.0198 pu. Those 621 violation events matched up with the 1,125 violation recorded from Case A: Case A counted every individual 1-second sample outside the voltage bound across all phases, while Case B compiled those samples into per-node event counts, providing complementary views of the same undervoltage condition. The framework generated the following assessment: 
+
+“Node 56 had the most voltage violations in this run, with 621 violation events — all undervoltage (0 overvoltage), spanning 3 phases. The voltage ranged from 0.9302 pu to 0.9499 pu with a mean of about 0.9455 pu, and the maximum deviation was 0.0198 pu. Condition label: vulnerable . Recommendation: investigate feeder/transformer tap settings and local reactive power support near Node 56 (e.g., capacitor/VAR control), and verify conductor/loading assumptions to bring voltages above 0.95 pu.” 
+
+The per-node violation counts across the feeder are shown in Fig. 3, confirming Node 56 as the most violated node.  
+
+> Fig. 3. Voltage violation event counts per node over the evaluated run, identifying Node 56 as the most frequently violated bus in the feeder.
+
+C. Case C: Reactive Power Overshoot Detection 
+
+The following prompt was submitted: 
+
+“Did reactive power overshoot coincide with voltage viola-tions at any node during Volt-VAR control operation? Which nodes were most affected?” 
+
+The framework generated a SQL query that combined the v_voltage_control_summary and 
+
+v_voltage_violations by matching node and time to find the time periods where max_q_overshoot exceeded zero and voltage_viol_flag was active at the same time. Only four nodes met these criteria, at each node, the number of overlapping event, the total for both voltage violations and reactive overshoot events. Node 56 had the most overlap, with 621 events and a maximum voltage drop of 0.0198pu. Node 13 had 285 over-lapping events and a maximum drop of 0.0102 pu. Node 1 recorded 186 events (maximum drop 0.0075 pu) and Node 57 recorded 33 events (maximum deviation 0.0025 pu). The constraint layer labeled the overal condition as stable because the voltage changes were not high enough to be consider severely unstable. The framework generated the following assessment: 
+
+“Yes. During Volt-VAR control operation, reactive power overshoot ( q_violation = TRUE) coincided with voltage violation timestamps at 4 nodes. The most affected node was Node 56 with 621 coincident events and the largest observed voltage deviation (0.0198 pu), followed by Node 13 with 285 events (max 0.0102 pu) and Node 1 with 186 events (max 0.0075 pu). Node 57 was least impacted with 33 coincident events (max 0.0025 pu). Overall condition label: 
+
+stable . Recommendation: review and retune Volt-VAR con-troller gains/deadbands or reactive power limits at Nodes 56 and 13 to reduce reactive overshoot and associated voltage excursions.” D. Case D: Demand Response Active-Power Tracking 
+
+Following prompt was submitted: 
+
+“How well did the BESS track the active power reference during demand response operation in this run?” 
+
+The framework generated a SQL query to check the 
+
+v_kpi_run_summary view and collect overall active-power tracking results for all Demand Response times. The query returned one summary row covering 50,000 samples from 2026-04-01 12:00:00 UTC to 2026-04-02 05:21:35 UTC. 6
+
+The average DR tracking error was 0.8529, much higher than the severe threshold of 0.1, indicating large and sustained deviation between the requested and active power during the whole period. Because of this, the constraint layer marked as 
+
+vulnerable .The framework generated the following assessment: 
+
+“The BESS did not track the active power reference well during demand response in this run. Over 50,000 samples from 2026-04-01 12:00 UTC to 2026-04-02 05:21 UTC, the mean absolute DR tracking error was 0.8529 — far above the severe threshold of 0.1. This indicates large, sustained deviation between commanded and delivered active power. Condition label: vulnerable . Recommendation: review and retune the active power control loop and limit handling (e.g., ramp-rate, saturation/anti-windup, and inverter power limits) to reduce tracking error, and verify telemetry scaling/units for the reference and measured power signals.” 
+
+The active-power tracking performance is shown in Fig. 4, which compares Pref against Pmeas across the full DR dispatch window and illustrates the magnitude of the tracking deviation identified by the framework. 
+
+Fig. 4. Demand response active-power tracking during the evaluated run: reference command ( Pref ) vs. measured BESS response ( Pmeas ), showing sustained tracking deviation classified as vulnerable. 
+
+V. C ONCLUSIONS 
+
+This paper presented an AI-enabled monitoring framework integrating a large language model with a PostgreSQL teleme-try database for BESS operation analysis. This pipeline allows the language model to serve as a natural-language interface, while SQL validation and deterministic constraint checks control the numerical and engineering content of the response. It translates natural-language operator questions into structured SQL queries, retrieves operational telemetry from predefined KPI views, evaluates results against engineering constraints, and generates concise engineering assessments. Case-study evaluation demonstrated successful SQL generation, accurate retrieval of operational information, and meaningful interpre-tation of voltage regulation and reactive power control behav-ior, supported by the voltage response and demand response tracking results shown in Figs. 2 and 4. The results indicate that LLM-assisted monitoring can provide a practical interface between telemetry databases and engineering decision-support systems for future power distribution grid applications. The functional comparison in Table IV shows that the proposed framework reduces the need for manual KPI-view selection, SQL writing, constraint checking, and engineering interpreta-tion. The present comparison is not a formal user-efficiency study; future work will quantify operator time, query success, and usability against conventional dashboards, manual SQL workflows, and ADMS/DERMS monitoring interfaces. Future deployment work will also evaluate the framework on live distribution feeders so that operators can query telemetry as it is generated. While this study demonstrates the technical feasibility of schema-constrained LLM-assisted monitoring, a formal user-efficiency comparison against conventional dash-boards, manual SQL workflows, and existing ADMS/DERMS monitoring interfaces will be explored in future work. We also plan to collaborate with electric service providers to implement the system on live distribution feeders, allowing operators to query telemetry as it is generated. REFERENCES [1] N. Fose, A. R. Singh, S. Krishnamurthy, M. Ratshitanga, and P. Moodley, “Empowering distribution system operators: A review of distributed energy resource forecasting techniques,” Heliyon , vol. 10, no. 15, 2024. [2] M. Peterson, O. O’Reilly, A.-K. Manoharan, S. Rajendran, A. Melagoda, V. Aravinthan, E. Liu, A. Tamimi, and C. Yokley, “Economic and reliability impacts of combined solar and battery energy storage as a non-wire alternative,” in 2023 North American Power Symposium (NAPS) ,2023, pp. 1–6. [3] M. Sarwar, A. R. R. Matavalam, and V. Ajjarapu, “Characterization and mitigation of fault induced delayed voltage recovery with dynamic voltage support by hybrid pv plants,” in 2022 North American Power Symposium (NAPS) . IEEE, 2022, pp. 1–6. [4] H. Zhao, M. Hong, W. Lin, and K. A. Loparo, “Voltage and frequency regulation of microgrid with battery energy storage systems,” IEEE Transactions on Smart Grid , vol. 10, no. 1, pp. 414–424, 2019. [5] J. Wei, S. Gupta, D. C. Aliprantis, and V. Kekatos, “A chance-constrained optimal design of volt/var control rules for distributed energy resources,” in 2023 North American Power Symposium (NAPS) . IEEE, 2023, pp. 1–6. [6] M. F. Rafy, E. O. Boateng, V. V. G. Krishnan, and A. K. Srivastava, “Cyber-resilient iot-based battery energy storage systems in power dis-tribution system,” IEEE Transactions on Industry Applications , vol. 61, no. 3, pp. 4566–4577, 2025. [7] H. Mirshekali, M. Reza Shadi, F. Ghanadi Ladani, and H. Reza Shaker, “A review of large language models for energy systems: Applications, challenges, and future prospects,” IEEE Access , vol. 13, pp. 163 162– 163 188, 2025. [8] S. Jin and S. Abhyankar, “Chatgrid: Power grid visualization empowered by a large language model,” in 2024 IEEE Workshop on Energy Data Visualization (EnergyVis) . IEEE, 2024, pp. 12–17. [9] J. Ruan, G. Liang, H. Zhao, G. Liu, X. Sun, J. Qiu, Z. Xu, F. Wen, and Z. Y. Dong, “Applying large language models to power systems: Potential security threats,” IEEE transactions on smart grid , vol. 15, no. 3, pp. 3333–3336, 2024. [10] V. Cobilean, H. S. Mavikumbure, B. J. Mcbride, B. Vaagensmith, V. K. Singh, R. Li, C. Rieger, and M. Manic, “A review of visualization methods for cyber-physical security: Smart grid case study,” IEEE Access , vol. 11, pp. 59 788–59 803, 2023. [11] L. Strezoski, H. Padullaparti, F. Ding, and M. Baggu, “Integration of utility distributed energy resource management system and aggregators for evolving distribution system operators,” Journal of Modern Power Systems and Clean Energy , vol. 10, no. 2, pp. 277–285, 2022. [12] S. Vadari, I. Dˇ zafi´ c, D. Koch, R. Murphy, D. Hayes, and T. Donlagic, “Distribution control centers in the us and europe: Commonalities, differences, and lessons,” Journal of Modern Power Systems and Clean Energy , vol. 10, no. 2, pp. 259–268, 2022. [13] N. Sugunaraj, S. R. A. Balaji, B. S. Chandar, P. Rajagopalan, U. Kose, D. C. Loper, T. Mahfuz, P. Chakraborty, S. Ahmad, T. Kim et al. ,“Distributed energy resource management system (derms) cybersecurity scenarios, trends, and potential technologies: a review,” IEEE Commu-nications Surveys & Tutorials , vol. 28, pp. 224–277, 2025. [14] S. Kunkolienkar, J. Cook, and T. J. Overbye, “Visualizing volt-var distributions in large-scale electric grid models,” in 2024 56th North American Power Symposium (NAPS) . IEEE, 2024, pp. 1–6. [15] Y. Chen and A. A. Anderson, “Connecting minds: Ai use cases to bridge power systems and large language models for practical applications,” Pacific Northwest National Laboratory (PNNL), Richland, WA (United States), Tech. Rep., 2025. [16] R. S. Bonadia, F. C. Trindade, W. Freitas, and B. Venkatesh, “On the potential of chatgpt to generate distribution systems for load flow studies using opendss,” IEEE Transactions on Power Systems , vol. 38, no. 6, pp. 5965–5968, 2023. [17] A. Jena, F. Ding, J. Wang, Y. Yao, and L. Xie, “Llm-based adaptive distribution voltage regulation under frequent topology changes: An in-context mpc framework,” IEEE Transactions on Smart Grid , 2025. [18] A. Walker and J. Desai, “Battery energy storage system evaluation method,” National Renewable Energy Laboratory (NREL), Golden, CO (United States), Tech. Rep., 2023. [19] Z. Hong, Z. Yuan, Q. Zhang, H. Chen, J. Dong, F. Huang, and X. Huang, “Next-generation database interfaces: A survey of llm-based text-to-sql,” 
+
+IEEE Transactions on Knowledge and Data Engineering , 2025. [20] M. Rafy, P. Sharma, N. Patari, A. K. Srivastava, and A. Sharma, “Edge-driven distributed control for power distribution: A real-time hardware-in-the-loop testbed for industrial automation and applications,” IEEE Transactions on Industry Applications , pp. 1–12, 2026.

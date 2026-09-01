@@ -1,0 +1,620 @@
+Title: Iteration Without Elaboration: A Simple ReAct Architecture Suffices for Text-to-SQL Generation
+
+URL Source: https://arxiv.org/pdf/2608.22651v1
+
+Published Time: Tue, 25 Aug 2026 01:47:45 GMT
+
+Number of Pages: 19
+
+Markdown Content:
+## Iteration Without Elaboration: A Simple ReAct Architecture Suffices for Text-to-SQL Generation 
+
+Jian Lu 1, Haiwei Yu 1, Raymond M Xiong 1, Anru Zhang 1†, Danyang Zhuo 1†
+
+> 1
+
+Duke University 
+
+> †
+
+Equal supervision and corresponding authors. {jian.lu, haiwei.yu, raymond.xiong, anru.zhang}@duke.edu; danyang@cs.duke.edu 
+
+Abstract 
+
+Modern text-to-SQL systems have become in-creasingly elaborate, relying on schema-linking modules, retrieval-augmented prompting, can-didate generation, and multi-stage refinement pipelines. While effective, these additions intro-duce substantial latency and engineering over-head. To this end, we present ReAct-SQL ,a simple yet effective zero-shot ReAct-style framework built solely on iterative reasoning and a constrained action space defined by a typed Domain-Specific Language (DSL) of 15 relational operations, rather than free-form SQL generation. The model incrementally is-sues DSL calls, observes compiled-SQL execu-tion feedback, and revises its reasoning through interaction. On corrected BIRD mini-dev and EHR-SQL, ReAct-SQL achieves 84.5% and 
+
+73.9% accuracy, respectively, matching sub-stantially more elaborate baselines while run-ning up to 8× faster. Incremental ablations further show that iteration primarily improves grounding, while the DSL improves composi-tional reliability. 
+
+1 Introduction 
+
+Text-to-SQL—translating natural-language ques-tions into executable queries against a relational database—is a long-standing problem that large language models (LLMs) have recently achieved substantial performance improvements on popular benchmarks(Li et al., 2023; Yu et al., 2018). Yet unlike most code-generation tasks, SQL is not a free-standing programming language: its correct-ness is inseparable from the database it targets. The same question against two schemas can require completely different queries, and a single wrong column name, misaligned join, or format mismatch on a join key silently invalidates the answer. In this sense, text-to-SQL is less a code-generation prob-lem than a schema-conditioned reasoning problem. Recent work spans one-shot prompting, fixed multi-stage pipelines, feedback-driven agentic loops, and retrieval-augmented in-context learn-ing (§2)—each adding components for incremental accuracy gains, but underweighting their resulting 
+
+cost-latency profile . Latency in particular is a hard constraint that money cannot buy its way out of: a pipeline with high latency is unusable in an inter-active setting regardless of its budget. A second de-ployment friction comes from in-context retrieval: pipelines that rely on retrieved question–SQL pairs cannot be applied to private or enterprise databases without first labeling a corpus. Empirically, we find that text-to-SQL fail-ures fall into two largely orthogonal categories. The first arises when the target query is long or deeply nested: the model hallucinates non-existent tables or columns, or emits syntactically invalid SQL. The second arises when schema and table names are opaque (e.g. chartevents ,
+
+d_icd_diagnoses ): the model cannot reliably identify which table or column the question refers to. We refer to these as the composition problem 
+
+(producing well-formed, executable SQL) and the 
+
+grounding problem (mapping the question to the correct tables and columns), respectively. These two failure modes call for two distinct so-lution mechanisms. Composition fits naturally into a typed action space : rather than re-emitting raw SQL at every step, the model operates over a small, closed vocabulary of relational operations whose validity is checked at compile time, eliminating the per-turn SQL-parsing burden and catching column-name errors before execution. Grounding fits natu-rally into iteration : by interacting with the database over multiple rounds—probing value distributions, verifying join keys, sampling rows—the model can disambiguate concepts before committing to a final query. As a secondary benefit, each operation in a typed action space forms a named intermediate, yielding a step-decomposed trace whose reasoning is open to inspection. To this end, we propose ReAct-SQL , a zero-1arXiv:2608.22651v1 [cs.CL] 23 Aug 2026 shot agentic framework in which the LLM never generates SQL directly . Given only the database schema and the natural-language question—with no schema-linking module, no candidate prefilling, and no retrieved demonstrations—the model con-structs the query through a typed domain-specific language (DSL) over an immutable Relation ab-straction in a ReAct-style loop (Yao et al., 2023). The DSL targets composition; the loop targets grounding; the resulting trace doubles as a step-decomposed record of the model’s reasoning. To evaluate this design comprehensively, we look be-yond the end-task accuracy that most prior work emphasizes and additionally measure cost and la-tency under matched models and identical settings, reporting per-query cost and median latency. Our contributions are threefold: • A vanilla ReAct loop suffices for compet-itive text-to-SQL. We show that a plain think →act →observe loop—without schema link-ing, retrieval, candidate sampling, or dedicated verifiers—reaches competitive accuracy at sub-stantially lower cost and latency than more elab-orate pipelines. • A typed DSL as the LLM’s constrained ac-tion space. Targeting the composition prob-lem, we replace free-form SQL generation with a typed DSL: the model is exposed only to 15 schema-validated relational operations (12 Relation-building plus 3 read-only probing) over an immutable Relation abstraction, with column references checked at compile time rather than at execution. • A comprehensive accuracy–efficiency analy-sis. Where prior work focuses primarily on accu-racy, we benchmark text-to-SQL pipelines end-to-end under identical conditions and find that recent systems cluster tightly in accuracy yet di-verge dramatically in cost and latency, suggesting that future evaluation of deployable text-to-SQL should treat both as first-class metrics alongside accuracy. 
+
+2 Related Work 
+
+Text-to-SQL Generation. Prior systems span three broad approaches. Early neural approaches frame text-to-SQL as sequence-to-sequence trans-duction, training encoder–decoder models on (ques-tion, SQL) pairs (Zhong et al., 2017; Yu et al., 2018). With the advent of LLMs, in-context learn-ing with schema-aware prompts emerged as a one-pass alternative (Rajkumar et al., 2022), but proved brittle on complex, real-world schemas. Multi-stage pipelines address this by decomposing the task into fixed sequential steps, each targeting a dif-ferent sub-problem (Talaei et al., 2024; Cao et al., 2024; Xie et al., 2025b; Pourreza and Rafiei, 2023). For example, CHESS (Talaei et al., 2024) coordi-nates four specialized agents (information retriever, schema selector, candidate generator, unit tester) in a fixed-order pipeline; RSL-SQL and OpenSearch-SQL follow a similar pattern with empirically-tuned variations. A more recent line of work in-troduces flexible, feedback-driven loops in which the model dynamically adapts its strategy based on execution results (Nan et al., 2026; Cao et al., 2026; Xie et al., 2025a). For instance, DIVER (Nan et al., 2026) performs value linking through interactive probing tools to ground entity references before SQL generation, and APEX-SQL (Cao et al., 2026) adds hypothesis–verification loops where the model proposes candidate SQL, inspects results, and revises over multiple rounds. In all of these, each turn still emits a complete SQL string. ReAct-SQL takes the loop further: the model builds the query incrementally inside the loop through a typed DSL, with each step producing a named, validated intermediate rather than a fresh SQL string. 
+
+LLM Agents and ReAct-Style Reasoning. The ReAct paradigm interleaves reasoning traces with tool-calling actions (Yao et al., 2023) and has since become the dominant design pattern for LLM agents. Subsequent work has extended this loop with self-reflection (Shinn et al., 2023), learned tool use (Schick et al., 2023) and persistent skill libraries (Wang et al., 2023b). 
+
+Structured and DSL-Based Generation. A par-allel line of work imposes structure on LLM out-puts to improve reliability. Constrained decod-ing enforces validity at the token level: PICARD (Scholak et al., 2021) constrains beam search for SQL specifically, and general-purpose frameworks such as Outlines (Willard and Louf, 2023) admit regex and context-free grammar constraints. Acomplementary strategy replaces the output lan-guage entirely—CodeAct (Wang et al., 2024) treats executable Python as the agent action space. Our typed DSL extends this direction: rather than constraining SQL at the token level or reusing a general-purpose language, we define a small, closed vocabulary of 15 relational operations that 2constitutes the entire action space. 
+
+3 Methodology 
+
+3.1 Overview 
+
+ReAct-SQL takes a deliberately simple approach (Figure 1): given the database schema and a natural-language question, the model incremen-tally constructs the query through a ReAct-style 
+
+think →act →observe loop over a typed relational DSL. At each turn the model first thinks , then is-sues batched DSL operations and observes their execution results, revising until it arrives at an an-swer. An answer-shaping pass (§3.2.3) then selects or synthesizes the canonical answer from the trace. 
+
+3.2 ReAct-Style Query Construction 
+
+The core of ReAct-SQL is a multi-turn 
+
+think →act →observe loop in which the model constructs the query incrementally. Rather than generating SQL directly—which is difficult to constrain—the model’s actions are restricted to a fixed set of typed DSL operations, which a deterministic engine validates and compiles to SQL. 
+
+3.2.1 The Think–Act–Observe Loop 
+
+At the first turn, the model sees only the natural-language question, the database schema, and the DSL documentation. It first thinks : it emits a reasoning block inside <think>...</think> 
+
+tags that analyzes the question and plans an ap-proach. It then acts : it issues a JSON array of DSL tool calls that are executed sequentially, so a handle produced by one call is available to later calls in the same turn. A typical first turn, for instance, loads a few candidate tables with table_ref and then probes their contents with probe_values or 
+
+execute , checking the data against the model’s expectations. Before compilation, the engine validates every parameter against the current schema and the Rela-tion graph (§3.2.2), catching unknown tables, miss-ing columns, and references to columns dropped by earlier operations. On failure it returns a typed error (e.g., UnknownColumnError ) with a di-agnostic message and skips the rest of the batch; the next <think> block sees which call failed, why, and what succeeded, so the model can reissue a corrected batch. For each successful call, the engine returns an ob-servation : the output handle name together with its available columns—for example, a table_ref 
+
+call returns a handle pointing to the loaded table along with its columns. For execute calls the ob-servation additionally includes a preview of the result rows and the total row count, giving the model concrete data to verify its query logic. Han-dles persist across turns, so the model can refer-ence any previously created handle later in the trace. The first turn thus has no observation to condition on; from the second turn onward, each 
+
+<think> block is conditioned on the full environ-ment feedback—the per-call outcome of the previ-ous batch (success or typed error), any execute 
+
+previews, and every live handle—which the model uses to plan its next batch. The model itself decides when to stop: once it believes it has reached the answer, it emits a 
+
+final signal and the loop terminates. We set a configurable turn budget so the model does not waste resources iterating indefinitely on questions it cannot resolve. Because each DSL call is a com-pact JSON object rather than a full SQL string, the multi-turn loop remains cost-efficient despite its iterative nature. 
+
+3.2.2 Query Construction via Relation Operations 
+
+Within each turn, the “act” phase builds the query by composing operations over an immutable data structure called a Relation . Each Rela-tion represents a SQL subquery together with an 
+
+available_cols dictionary mapping logical column names to their underlying SQL expressions. Every DSL operation consumes one or more Re-lations and returns a new Relation rather than mu-tating its input, so the query-construction history forms a directed acyclic graph (DAG) that the de-terministic engine compiles to SQL. Because the model refers to columns by logical name, it is insu-lated from SQL-level scoping rules—for example, whether a column is visible inside or outside a 
+
+GROUP BY .The DSL exposes 12 Relation-building opera-tions and 3 read-only probing operations (Table 1). The probing operations— probe_values ,
+
+value_exists , and sim_value_in , in-spired by SDE-SQL’s use of SQL probes for self-driven database exploration (Xie et al., 2025a)—let the model sample column values during reasoning to ground entity references and verify value formats before committing to a query. Crucially, each Relation-building 3Think  Synthesized answer 
+
+> from multiple execution results in the
+> trace
+> Final
+> Answer
+
+System Input  ReAct- SQL Loop 
+
+Act 
+
+> Validate
+> Parameter
+> Complie to
+> SQL
+> SQLite
+> DB
+
+LLM 
+
+Observe 
+
+> Reasoning & Planning
+> DSL Batch Function Calls Living Handles & DSL Results
+> DSL Docs
+> Question
+> Query
+> Database
+> Schema
+> Context
+> table_ref(customers,yearmonth)
+> probe_values(t_customers) ....
+> <think> Let me f irst load ....
+> </ think>
+> Handles: t_customers, t_yearmont
+> DSL results: Currency :[' CZK',' EUR' ]
+> Tool
+> Execution
+> Structured
+> Observation
+> Passthrough
+> <execute_result_N>
+> Directly refer to a execute_result
+> Answ er Shaping Pass
+
+Figure 1: ReAct-SQL architecture. The model receives only the schema, the question, and DSL documentation. It reasons, issues batched DSL operations, and observes execution results in a multi-turn loop. An always-on answer-shaping pass either passes the canonical execute result through (via a <execute_result_N> sentinel) or synthesizes a combined multi-metric answer from the trace. 
+
+Operation Description 
+
+Relation-building (12) 
+
+table_ref Load a base table as a Relation 
+
+select_columns Project a subset of columns 
+
+distinct Deduplicate rows 
+
+filter_expr Apply a SQLite WHERE predicate 
+
+join_table Inner / left / cross join 
+
+aggregate GROUP BY with aggregations 
+
+derive_column Add a column from an SQLite expres-sion 
+
+window_column Add a rank/aggregate column; keeps all rows 
+
+order_by Sort by one or more keys 
+
+limit Truncate to n rows 
+
+materialize Persist to TEMP TABLE ; reset depth 
+
+execute Compile and run; return rows 
+
+Probing, read-only (3) 
+
+probe_values Sample distinct values from a column 
+
+value_exists Test whether a value exists 
+
+sim_value_in Fuzzy-match a value against a column 
+
+Table 1: The 12 relation-building and 3 read-only prob-ing operations of the DSL. 
+
+operation transforms available_cols in a well-defined way that mirrors SQL semantics (e.g., join_table merges both inputs’ column dictionaries, while aggregate retains only the group-by and aggregate columns), so at every node in the DAG the engine knows exactly which columns exist. It can therefore validate the model’s references before generating any SQL—catching typos, stale references from earlier turns, and columns lost through prior projections at compile time rather than at execution. 
+
+3.2.3 Answer Shaping 
+
+Although the iteration loop already produces an answer, a lightweight answer-shaping pass presents it unambiguously, without further rea-soning. From the question, the reasoning trace, and previews of prior execute results, the shaper emits either a synthesized table—when the answer spans several executes, common for BIRD’s multi-part questions—or a single-line sen-tinel <execute_result_N> that designates the N -th execute as the answer (e.g., rewriting an implicitly returned row list as an explicit yes/no). The sentinel keeps shaping cost independent of re-sult size and preserves the engine’s output byte-for-byte , avoiding the surface-level mismatches that motivate our LLM-judge scoring (§4.2). 
+
+4 Experimental Setup 
+
+4.1 Datasets BIRD mini-dev (corrected). We evaluate on the corrected BIRD mini-dev (Jin et al., 2026), a 498-question subset of BIRD (Li et al., 2023) spanning 11 databases with per-question difficulty labels. A recent audit finds that a substantial fraction of the original mini-dev questions contain annotation er-rors (hint–SQL contradictions, missing filters, am-biguous targets), and that correcting them can shift per-system accuracy markedly between the two re-leases, so conclusions about system ordering on BIRD depend substantially on which release one uses. 
+
+EHR-SQL. To test whether conclusions on a general-purpose benchmark survive a shift in schema domain, we additionally evaluate on EHR-SQL (Lee et al., 2023), a clinical text-to-SQL benchmark, using the MIMIC-IV port re-4leased for the EHRSQL 2024 shared task (Lee et al., 2024) (934 answerable test questions; the unanswerable subset is excluded). Its ∼15 in-terconnected tables (e.g., d_icd_diagnoses ,
+
+inputevents , labevents , chartevents )follow medical conventions that differ sharply from BIRD’s general-purpose schemas. We deliberately withhold EHR-SQL’s labeled training split from all systems, so no question–SQL pairs are available for in-context retrieval—a setting that mimics indus-trial deployment on a specialized database and that especially stresses retrieval-augmented pipelines whose retrievers are trained on BIRD-style data. 
+
+4.2 LLM-Judge Scoring 
+
+The official BIRD protocol scores a prediction as correct only if set(cursor.fetchall()) 
+
+on the predicted SQL exactly matches the gold result—a criterion that penalizes numerical drift, extra harmless projection columns, and trivial row-ordering differences, systematically understating the accuracy of agentic systems whose outputs are semantically correct but not byte-identical (Huo et al., 2025; Zheng et al., 2023). EHR-SQL ex-hibits analogous mismatches in date encodings, value casing, and identifier prefixes. We replace strict equality with a fixed LLM-as-judge scorer— applied uniformly to every system on both bench-marks, returning a binary MATCH /MISMATCH ver-dict and instructed to treat such surface differences as MATCH . Because a single judge is used across all systems, any residual bias affects them sym-metrically. The detailed implementation is in Ap-pendix D. 
+
+4.3 Baselines 
+
+We compare against five text-to-SQL systems span-ning the design spectrum: CHESS (Talaei et al., 2024), RSL-SQL (Cao et al., 2024), DSR-SQL 
+
+(Hao et al., 2025), DIN-SQL (Pourreza and Rafiei, 2023), and MAC-SQL (Wang et al., 2023a); full de-scriptions are in Appendix E. RSL-SQL is the only baseline that uses retrieved in-context examples— via a sentence-transformer retriever trained on BIRD question–SQL pairs—and we keep its de-fault retrieval configuration since it is core to the method. All systems use Gemini 2.5 Flash (Co-manici et al., 2025) as backbone. To assess the gen-eralizability of ReAct-SQL, we additionally evalu-ate it across a range of backbones—from Gemini-2.5-Flash-Lite to Gemini-2.5-Pro(Comanici et al., 2025) and a non-Gemini family (Claude Sonnet 4.6(Anthropic, 2026)). 
+
+5 Results 
+
+5.1 Main Results 
+
+Table 2 reports the controlled comparison on both benchmarks. On the corrected BIRD mini-dev (Table 2, left half), four of the six systems land within 1.2 accuracy points of one another— CHESS (85.3%), DSR-SQL (84.9%), ReAct-SQL (84.5%), and RSL-SQL (84.1%)—while DIN-SQL and MAC-SQL trail 14–18 points behind. Where accuracy no longer separates systems, efficiency becomes the discriminating axis, and ReAct-SQL is the fastest of all six: a 7.5 s median latency, 7.2 ×
+
+faster than CHESS and 3.8 × faster than DSR-SQL , the two systems it ties on accuracy. Both reach that accuracy through elaborate machinery— CHESS through extensive candidate sampling (3 candidates × 5 unit tests over separate retrieval and unit-testing stages, ∼20 LLM calls per ques-tion), DSR-SQL through a two-state pipeline with an explicit schema-refinement phase. ReAct-SQL matches them with a single ReAct loop and none of that scaffolding. It is not the cheapest, however: RSL-SQL reaches comparable accuracy at roughly half the per-query cost ($0.0053 vs. $0.0107), lever-aging in-context examples retrieved from the BIRD training set. On EHR-SQL (Table 2, right half), the BIRD parity breaks in ReAct-SQL’s favor. ReAct-SQL leads accuracy outright at 73.9% —3.8 points above CHESS (70.1%) and 4.7 above DSR-SQL (69.2%)—while remaining the fastest system, at a 13.2 s median. The clinical schema costs every system accuracy, but ReAct-SQL pays the least: its 10.6-point drop from BIRD is the smallest of the six, against 15–25 points for the rest (CHESS 
+
+−15 .2, DSR-SQL −15 .7, DIN-SQL −16 .3, RSL-SQL −19 .3, MAC-SQL −25 .1). The elaborate pipelines that matched ReAct-SQL on BIRD do not carry that parity to the harder schema; their extra machinery does not translate into robust-ness. RSL-SQL shows this most starkly: its BIRD-competitive accuracy leans on in-context examples retrieved from BIRD training pairs, and on the clin-ical schema those examples are out-of-domain—its accuracy falls 19.3 points, the steepest drop among the four systems competitive on BIRD. A pipeline that depends on retrieved demonstrations is brit-tle when applied to a new database for which no labeled examples exist; ReAct-SQL’s single iterate-5BIRD mini-dev (498q) EHR-SQL (934q) System Acc. (%) Cost ($/q) Med. Lat. (s) Acc. (%) Cost ($/q) Med. Lat. (s)                                      
+
+> CHESS (Talaei et al., 2024) 85.3 0.0842 53.7 70.1 0.1140 104.8 RSL-SQL †(Cao et al., 2024) 84.1 0.0053 22.4 64.8 0.0087 40.2 DSR-SQL (Hao et al., 2025) 84.9 0.0252 28.1 69.2 0.0304 38.8 DIN-SQL (Pourreza and Rafiei, 2023) 70.3 0.0152 13.6 54.0 0.0193 17.7 MAC-SQL (Wang et al., 2023a) 66.1 0.0026 13.0 41.0 0.0026 18.8 ReAct-SQL (ours) 84.5 0.0107 7.5 73.9 0.0166 13.2
+
+Table 2: Main results on corrected BIRD mini-dev (Jin et al., 2026) and EHR-SQL (Lee et al., 2023); all systems receive identical hints and are scored by the same LLM judge. Latency is the per-query median; query latency is right-skewed, so the median is the representative measure—full statistics (mean, min, max, and coefficient of variation) are in Appendix G. Cost is the per-query mean: it depends only on input and output token counts, unlike latency, which also reflects server load and network conditions. †Uses retrieved in-context demonstrations from BIRD training pairs; all other systems are zero-shot.                
+
+> Backbone Base. +ReAct-SQL Gain
+> Gemini-2.5-Flash-Lite 30.5 45.5 +15 .0
+> Gemini-2.5-Flash 44.0 77.0 +33 .0
+> Gemini-2.5-Pro 45.0 81.5 +36 .5
+> Claude Sonnet 4.6 53.0 87.0 +34 .0
+
+Table 3: ReAct-SQL vs. the zero-shot raw-SQL base-line on a 200-question subset of EHR-SQL, across four backbones from two model families. Accuracy in %. As a subset, absolute accuracies differ slightly from the full-benchmark run. 
+
+and-probe loop, fully zero-shot, both generalizes better and runs nearly 8× faster than CHESS. Figure 2 plots all six systems against cost and la-tency on both benchmarks; ReAct-SQL lies on the Pareto frontier in all four panels—no other system is simultaneously cheaper (or faster) and at least as accurate. RSL-SQL undercuts it on BIRD cost, but only at lower accuracy. Altogether, ReAct-SQL remains competitive on both axes across the two benchmarks. 
+
+Cross-backbone consistency. To confirm the framework generalizes beyond Gemini-2.5-Flash, we additionally evaluate ReAct-SQL on a 200-question subset of EHR-SQL across four back-bones spanning two model families (Gemini-2.5-Flash-Lite, Flash, Pro, and Claude Sonnet 4.6). ReAct-SQL improves over the zero-shot raw-SQL baseline at every scale, with gains ranging from 
+
++15 .0 to +36 .5 points (Table 3); per-backbone analysis is in Appendix C. 
+
+6 Ablation Study 
+
+ReAct-SQL combines two design choices: itera-tion (the ReAct loop with execution feedback) and          
+
+> Setting BIRD EHR-SQL
+> (n=498 )(n=934 )Baseline (zero-shot raw SQL) 78.5 45.9 + Iteration (raw-SQL ReAct) 79.1 72.2 + Iteration + DSL (ReAct-SQL) 84.5 73.9
+
+Table 4: Incremental ablation on Gemini-2.5-Flash; ac-curacy in %, additional analysis of McNemar tests and bootstrap CIs are listed in Appendix A 
+
+the typed DSL (a closed action space with compile-time validation). We disentangle their contributions with a three-setting incremental ablation on both benchmarks (corrected BIRD mini-dev and EHR-SQL), under Gemini-2.5-Flash and the same LLM-judge scorer used in §5. We additionally report McNemar’s paired tests and paired bootstrap 95% 
+
+confidence intervals on each pairwise accuracy dif-ference; the full table of pairwise comparisons is in Appendix A. • Baseline (zero-shot raw SQL). A plain one-shot baseline: schema + question in, SQL out, single call. • + Iteration (raw-SQL ReAct). The ReAct loop runs as in the full system, but each “act” is a raw 
+
+execute_sql(...) call rather than a typed DSL operation. • + DSL (full ReAct-SQL). The complete system of §3. Adds the typed DSL on top of iteration. 
+
+Result overview. The ablation in Table 4 reveals two clear patterns. The two benchmarks start from very different baselines: zero-shot raw SQL reaches 78 .5% on BIRD but only 45 .9% on EHR-SQL, a 33 -point gap that foreshadows their dis-tinct difficulty profiles. On EHR-SQL, adding it-610 2 10 1                    
+
+> Cost per query (USD, log scale) 60 65 70 75 80 85 90 Execution accuracy (%)
+> worse
+> better
+> (a) BIRD-mini (corrected): accuracy vs. cost
+> CHESS RSL-SQL DSR-SQL DIN-SQL MAC-SQL ReAct-SQL
+> 10 20 30 40 50 60 Latency per query (seconds) 60 65 70 75 80 85 90 Execution accuracy (%)
+> worse
+> better
+> (b) BIRD-mini (corrected): accuracy vs. latency
+> CHESS RSL-SQL DSR-SQL DIN-SQL MAC-SQL ReAct-SQL
+> 10 210 1
+> Cost per query (USD, log scale) 35 40 45 50 55 60 65 70 75 80 Execution accuracy (%)
+> worse
+> better
+> (c) EHR-SQL: accuracy vs. cost
+> CHESS RSL-SQL DSR-SQL DIN-SQL MAC-SQL ReAct-SQL
+> 20 40 60 80 100 120 Latency per query (seconds) 35 40 45 50 55 60 65 70 75 80 Execution accuracy (%)
+> worse
+> better
+> (d) EHR-SQL: accuracy vs. latency
+> CHESS RSL-SQL DSR-SQL DIN-SQL MAC-SQL ReAct-SQL
+> Accuracy-efficiency Pareto frontier on Gemini-2.5-Flash
+> CHESS RSL-SQL DSR-SQL DIN-SQL MAC-SQL ReAct-SQL Pareto frontier
+
+Figure 2: Accuracy-efficiency Pareto frontier on Gemini-2.5-Flash. Each point is one system on one benchmark. Upper-left is better (higher accuracy, lower cost/latency). 
+
+eration alone lifts accuracy from 45 .9% to 72 .2% ,a +26 .2-point gain that is highly significant (Mc-Nemar p < 10 −45 ); adding the DSL on top yields only a marginal +1 .7 points. On BIRD, the pat-tern inverts: iteration alone moves the needle by only +0 .6 points, while adding the DSL on top contributes +5 .4 points (McNemar p = 0 .006 ). 
+
+Two bottlenecks, two remedies. On EHR-SQL , the bottleneck is value-level uncertainty: MIMIC-IV’s clinical conventions (lower-case drug names like metformin , simulated year-
+
+2100 timestamps, abbreviated table names 
+
+d_icd_diagnoses /hadm_id ) lie far from a model’s pretraining distribution, so a zero-shot model writes SQL “blind” and has no way to recover from a wrong-cased value or wrong table. Iteration breaks this open: the model probes the database (probe_values , value_exists ,
+
+sim_value_in ), observes what is stored, and only then writes the query; once probing has grounded the values, raw SQL and typed DSL ex-press the same logic equally well, which is why the DSL adds little on top. On BIRD , the bottleneck is structural correctness: its general-purpose schemas are well-represented in pretraining and value uncertainty is small, but many questions require parallel sub-computations across segments—e.g., “percentage increase in consumption for SME, LAM, and KAM respectively”—that compile to deeply nested SQL. Raw-SQL ReAct cannot easily recover from a structural mistake in one execution-feedback round (a botched join forces a from-scratch rewrite); the typed DSL targets this directly, abstracting SQL grammar away and letting the model name the logic step by step in a closed vocabulary, with compile-time validation and the materialize primitive preventing the structural errors raw-SQL ReAct incurs. In summary, iteration and the typed DSL are each indispensable to ReAct-SQL: iteration ad-dresses the grounding bottleneck (dominant on EHR-SQL) and the DSL the composition bottle-neck (dominant on BIRD). Their relative impact thus shifts with the dataset, but only combining the two delivers the best performance on both bench-marks. 
+
+7 Analysis and Implications 
+
+Iteration subsumes the grounding pipeline. 
+
+Prior text-to-SQL systems devote substantial ma-chinery to a single goal: giving the model enough knowledge of the database before it writes SQL. Schema-linking modules prune the schema; retriev-ers fetch similar question–SQL pairs; dedicated exploration or schema-refinement stages surface values and conventions. Each is a static preprocess-7ing step whose output is fixed before generation begins. We show that this class of machinery can instead be folded into the model itself, by cast-ing text-to-SQL in the LLM-agent paradigm: the model is handed tools to inspect its environment— the database—and left to resolve uncertainty on its own. On EHR-SQL this alone—the ReAct loop, with no schema linker, retrieval, or explo-ration module—lifts accuracy from 45.9% to 72.2% (+26 .2 points), with far less engineering overhead than a dedicated preprocessing stack. The reason is that grounding is fundamentally a question the model should ask on demand, not one answered in advance. Real databases carry latent conventions— abbreviations, categorical encodings, timestamp formats, institution-specific semantics—that no amount of static schema text reliably conveys. In-side the loop, the model probes the live database ex-actly when it is uncertain, observes what is stored, and only then commits—and this behavior emerges from a general ReAct loop rather than an engi-neered stage. 
+
+A constrained action space yields reliable SQL generation. SQL queries can grow unboundedly complex—nested subqueries, multi-way joins, lay-ered aggregation—yet that complexity is assem-bled from a small, recurring set of relational opera-tions. The typed DSL exposes exactly that closed set: the model manages the logic of a query—load a table, join, filter, aggregate—and never emits raw SQL grammar. This matters most where free-form generation is brittle: structurally complex queries. The standard remedy there—generate a full query, execute it, feed back the error, regenerate—rewrites the entire query on every failure, so a fixed mis-take can introduce a fresh one and recovery is un-reliable. A constrained action space changes the failure mode: because the model builds the query one typed operation at a time rather than emitting it whole, a hallucination—a reference to a non-existent table, say—is confined to the single opera-tion that contains it, and the model corrects just that step. Composition becomes a sequence of local-ized, individually-valid steps—an implicit chain-of-thought over executable relational states rather than SQL tokens. 
+
+Why this matters: accuracy has saturated, efficiency has not. Recent text-to-SQL sys-tems have steadily improved accuracy by adding components—retrieval, candidate sampling, veri-fication, multi-agent orchestration—and these ad-vances are real. But on corrected BIRD mini-dev, accuracy has largely converged: four systems now sit within 1.2 points of one another, while their la-tency spans nearly an order of magnitude. At this point accuracy no longer separates strong systems; efficiency does. Each added component carries an inherent cost—candidate sampling multiplies LLM calls, multi-agent orchestration multiplies prompts, retrieval and verification add stages—and that cost is now the main axis of variation among compara-ble systems. ReAct-SQL is a data point in the other direction: it reaches the same accuracy band with a single agentic loop, at a fraction of the cost and la-tency. We do not argue that elaborate components are unnecessary—many bring genuine accuracy gains—only that their efficiency cost deserves to be treated as a first-class deployment consideration, and that achieving the benefits of such components at low cost and latency is an important open prob-lem. 
+
+8 Conclusion 
+
+We have presented ReAct-SQL , a zero-shot text-to-SQL framework with a deliberately minimal design—just a typed DSL with compile-time vali-dation and a ReAct loop with execution feedback. ReAct-SQL reaches competitive accuracy on cor-rected BIRD mini-dev and EHR-SQL while run-ning up to 8× faster than the most elaborate base-lines. An incremental ablation isolates two orthog-onal bottlenecks— grounding , solved by iteration, and composition , solved by the DSL. Our experi-ments further suggest two broader takeaways: the DSL implicitly decomposes reasoning into step-by-step relational operations rather than a monolithic SQL string, and the ReAct loop naturally subsumes specialized preprocessing stages (schema linking, value exploration) that existing pipelines handle as separate modules. Our cross-system efficiency analysis surfaces a methodological point that cur-rent research often overlooks: pipelines within a few accuracy points of one another can differ by more than an order of magnitude in cost and latency (Figure 2). We hope to encourage future text-to-SQL research to evaluate not on accuracy alone, but on the full accuracy–cost–latency trade-off. 
+
+Limitations 
+
+Despite the promising results of ReAct-SQL, our approach has limitations worth clarifying. First, like any agentic pipeline, ReAct-SQL relies heav-8ily on the base model’s ability to follow structured instructions; weaker models tend to hallucinate non-existent operations or emit malformed DSL calls, which substantially degrades performance. Future work will explore specialized fine-tuning (using the traces collected in this work) to pro-duce a lightweight model proficient at DSL-based query construction. Second, our evaluation does not cover all dimensions of real-world deployment. The schemas we test are moderately sized, where the ReAct loop’s interactive exploration success-fully subsumes explicit schema linking; for enter-prise databases with thousands of tables, explicit schema pruning before the loop remains necessary simply to fit the schema within the model’s context window. Extending ReAct-SQL to enterprise-scale schemas and conversational deployment is a natu-ral follow-up. Third, the formal expressiveness of the DSL is an open question. In our experiments the DSL is empirically sufficient—we observed no failure attributable to inexpressibility—but a rigor-ous mathematical proof that the DSL is complete over standard relational operations remains future work. 
+
+Ethical considerations 
+
+Use of artifacts. This work uses only publicly available research artifacts, and our use of each is consistent with its intended research purpose. The BIRD benchmark and its corrected mini-dev split, together with the EHR-SQL benchmark, are publicly released for research use, and we use them solely to evaluate text-to-SQL systems—the task for which they were designed. The baseline systems we compare against—CHESS, RSL-SQL, DSR-SQL, DIN-SQL, and MAC-SQL—are run from their authors’ public code releases under their respective open-source licenses. We will release ReAct-SQL as open-source code for research use. 
+
+Clinical data. Our EHR-SQL experiments use the MIMIC-IV port released for the EHRSQL 2024 shared task. MIMIC-IV is distributed under the PhysioNet Credentialed Health Data License and requires credentialed access, completion of human-subjects research training, and acceptance of a data use agreement. The database is fully de-identified; we use it strictly for the non-commercial research purpose for which it is intended and make no at-tempt to re-identify individuals. No new human data was collected for this work. 
+
+References 
+
+Anthropic. 2026. Claude sonnet 4.6 system card. 
+
+https://www-cdn.anthropic.com/ 78073f739564e986ff3e28522761a7a0b4484f84. pdf . Accessed: 2026-05-26. Bowen Cao, Weibin Liao, Yushi Sun, Dong Fang, Haitao Li, and Wai Lam. 2026. Apex-sql: Talk-ing to the data via agentic exploration for text-to-sql. 
+
+arXiv.org .Zhenbiao Cao, Yuanlei Zheng, Zhihao Fan, Xiaojin Zhang, Wei Chen, and Xiang Bai. 2024. Rsl-sql: Robust schema linking in text-to-sql generation. 
+
+arXiv.org .Gheorghe Comanici, E. Bieber, Mike Schaekermann, Ice Pasupat, Noveen Sachdeva, Inderjit S. Dhillon, Marcel Blistein, Ori Ram, Dan Zhang, Evan Rosen, and 1 others. 2025. Gemini 2.5: Pushing the fron-tier with advanced reasoning, multimodality, long context, and next generation agentic capabilities. 
+
+arXiv.org .Zhifeng Hao, Qibin Song, Ruichu Cai, and Boyan Xu. 2025. Text-to-sql as dual-state reasoning: Inte-grating adaptive context and progressive generation. 
+
+arXiv.org .Nan Huo, Xiaohan Xu, Jinyang Li, Per Jacobsson, Shi Lin, Bowen Qin, Binyuan Hui, Xiaolong Li, Ge Qu, Shuzheng Si, and 1 others. 2025. Bird-interact: Re-imagining text-to-sql evaluation for large language models via lens of dynamic interactions. Tengjun Jin, Yoojin Choi, Yuxuan Zhu, and Daniel Kang. 2026. Pervasive annotation errors break text-to-SQL benchmarks and leaderboards. In Proceed-ings of the VLDB Endowment , volume 19, pages 931– 944. Association for Computing Machinery (ACM). ArXiv:2601.08778. Corrected BIRD mini-dev: 
+
+https://github.com/uiuc-kang-lab/ text_to_sql_benchmarks .Gyubok Lee, Hyeonji Hwang, Seongsu Bae, Yeonsu Kwon, Woncheol Shin, Seongjun Yang, Minjoon Seo, Jong-Yeup Kim, and Edward Choi. 2023. Ehrsql: A practical text-to-sql benchmark for electronic health records. In Neural Information Processing Systems .Gyubok Lee, Sunjun Kweon, Seongsu Bae, and Edward Choi. 2024. Overview of the ehrsql 2024 shared task on reliable text-to-sql modeling on electronic health records. In Clinical Natural Language Processing Workshop , pages 644–654. Association for Computa-tional Linguistics. Jinyang Li, Binyuan Hui, Ge Qu, Binhua Li, Jiaxi Yang, Bowen Li, Bailin Wang, Bowen Qin, Rongyu Cao, Ruiying Geng, and 1 others. 2023. Can llm already serve as a database interface? a big bench for large-scale database grounded text-to-sqls. In Advances in Neural Information Processing Systems , pages 42330–42357. 
+
+9Yafeng Nan, Haifeng Sun, Zirui Zhuang, Qi Qi, Guo-jun Chu, Jianxin Liao, Dan Pei, and Jingyu Wang. 2026. Diver: A robust text-to-sql system with dy-namic interactive value linking and evidence reason-ing. Proceedings of the ACM on Management of Data , 4(1):1–24. Mohammadreza Pourreza and Davood Rafiei. 2023. Din-sql: Decomposed in-context learning of text-to-sql with self-correction. In Neural Information Processing Systems , pages 36339–36348. Neural Information Processing Systems Foundation, Inc. (NeurIPS). Nitarshan Rajkumar, Raymond Li, and Dzmitry Bah-danau. 2022. Evaluating the text-to-sql capabilities of large language models. arXiv.org .Timo Schick, Jane Dwivedi-Yu, Roberto Dessì, R. Raileanu, M. Lomeli, Luke Zettlemoyer, Nicola Cancedda, and Thomas Scialom. 2023. Toolformer: Language models can teach themselves to use tools. In Neural Information Processing Systems , pages 68539–68551. Neural Information Processing Sys-tems Foundation, Inc. (NeurIPS). Torsten Scholak, Nathan Schucher, and Dzmitry Bah-danau. 2021. PICARD: Parsing incrementally for constrained auto-regressive decoding from language models. In Conference on Empirical Methods in Natural Language Processing , pages 9895–9901. As-sociation for Computational Linguistics. Noah Shinn, Federico Cassano, Beck Labash, A. Gopinath, Karthik Narasimhan, and Shunyu Yao. 2023. Reflexion: Language agents with verbal rein-forcement learning. In Neural Information Process-ing Systems , pages 8634–8652. Neural Information Processing Systems Foundation, Inc. (NeurIPS). Shayan Talaei, Mohammadreza Pourreza, Yu-Chen Chang, Azalia Mirhoseini, and Amin Saberi. 2024. Chess: Contextual harnessing for efficient sql synthe-sis. arXiv.org .Bing Wang, Changyu Ren, Jian Yang, Xinnian Liang, Jiaqi Bai, Qian-Wen Zhang, Zhao Yan, and Zhoujun Li. 2023a. Mac-sql: A multi-agent collaborative framework for text-to-sql. International Conference on Computational Linguistics .Guanzhi Wang, Yuqi Xie, Yunfan Jiang, Ajay Man-dlekar, Chaowei Xiao, Yuke Zhu, Linxi Fan, and An-ima Anandkumar. 2023b. Voyager: An open-ended embodied agent with large language models. Trans. Mach. Learn. Res. 
+
+Xingyao Wang, Yangyi Chen, Lifan Yuan, Yizhe Zhang, Yunzhu Li, Hao Peng, and Heng Ji. 2024. Executable code actions elicit better LLM agents. In Interna-tional Conference on Machine Learning .Brandon T. Willard and Rémi Louf. 2023. Effi-cient guided generation for large language models. 
+
+arXiv.org .Wenxuan Xie, Yaxun Dai, and Wenhao Jiang. 2025a. Sde-sql: Enhancing text-to-sql generation in large language models via self-driven exploration with sql probes. arXiv.org .Xiangjin Xie, Guangwei Xu, Lingyan Zhao, and Ruijie Guo. 2025b. Opensearch-sql: Enhancing text-to-sql with dynamic few-shot and consistency alignment. 
+
+Proc. ACM Manag. Data , 3(3):1–24. Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik Narasimhan, and Yuan Cao. 2023. React: Synergizing reasoning and acting in language models. In International Conference on Learning Representations (ICLR) .Tao Yu, Rui Zhang, Kai-Chou Yang, Michihiro Ya-sunaga, Dongxu Wang, Zifan Li, James Ma, Irene Z Li, Qingning Yao, Shanelle Roman, and 1 others. 2018. Spider: A large-scale human-labeled dataset for complex and cross-domain semantic parsing and text-to-sql task. pages 3911–3921. Association for Computational Linguistics. Lianmin Zheng, Wei-Lin Chiang, Ying Sheng, Siyuan Zhuang, Zhanghao Wu, Yonghao Zhuang, Zi Lin, Zhuohan Li, Dacheng Li, Eric P. Xing, and 1 oth-ers. 2023. Judging LLM-as-a-judge with MT-bench and chatbot arena. Neural Information Processing Systems , pages 46595–46623. Victor Zhong, Caiming Xiong, and Richard Socher. 2017. Seq2sql: Generating structured queries from natural language using reinforcement learning. In 
+
+arXiv.org .
+
+A Statistical Analysis 
+
+Here we report two complementary analyses back-ing the ablation in Table 4: McNemar’s paired test for each pairwise difference in accuracy, and paired bootstrap percentile 95% confidence inter-vals on the difference. McNemar is the appropriate paired test for binary correctness with shared ques-tions across systems; it conditions on the discordant pairs, where b counts questions on which the earlier-stage system is right and the later-stage system is wrong, and c counts the reverse. For BIRD, we re-port continuity-corrected χ2 p-values, which agree with exact-binomial values to three decimals on every comparison. For EHR-SQL, we report exact-binomial p-values for the two highly-significant comparisons (where the continuity-corrected nor-mal approximation becomes inaccurate at extreme tail probabilities). Bootstrap CIs are computed with 10 ,000 paired resamples of the question-level correctness vector; the reported interval is the 
+
+[2 .5, 97 .5] percentile of the resampled accuracy dif-ference (in percentage points). 10 Comparison ∆Acc 95% CI b c p                                                  
+
+> BIRD mini-dev (n = 498)
+> Baseline →+Iter +0 .60 [−3.41 ,+4 .62] 53 56 0.848 (n.s.) +Iter →+Iter+DSL +5 .42 [+1 .61 ,+9 .24] 32 59 0.006
+> Baseline →+Iter+DSL +6 .02 [+2 .61 ,+9 .64] 28 58 0.002
+> EHR-SQL (n = 934)
+> Baseline →+Iter +26 .23 [+22 .91 ,+29 .66] 38 283 ∼10 −47
+> +Iter →+Iter+DSL +1 .71 [−1.07 ,+4 .50] 78 94 0.253 (n.s.) Baseline →+Iter+DSL +27 .94 [+24 .41 ,+31 .48] 44 305 ∼10 −49
+
+Table 5: Pairwise McNemar tests for the ablation in Table 4, with paired bootstrap 95% CIs on the accuracy difference. ∆Acc is in percentage points; b is the count of questions on which the earlier-stage system is right but the later-stage system is wrong, and c is the reverse; p is the McNemar p-value (continuity-corrected for BIRD; exact-binomial for the two extreme-tail EHR-SQL cells, where the normal approximation breaks down).                
+
+> Difficulty nAcc. (%) Avg. turns
+> Simple 148 87.2 2.6 Moderate 248 83.9 3.4 Challenging 102 82.4 4.0 Overall 498 84.5 3.3
+
+Table 6: ReAct-SQL on corrected BIRD mini-dev, bro-ken down by the official difficulty labels. 
+
+B BIRD Performance by Difficulty 
+
+Table 6 reports ReAct-SQL’s BIRD accuracy bro-ken down by the official difficulty labels. Accuracy degrades gracefully from simple to challenging (87.2% → 82.4%, a 4.8-point drop), while average reasoning-turn count grows modestly (2.6 → 4.0 turns), well under the 15-turn budget on all strata. This pattern indicates that the model’s per-turn branching adapts to question complexity: sim-ple queries terminate quickly, while challenging queries use more turns without saturating the bud-get. 
+
+C Backbone Generalization 
+
+To test whether ReAct-SQL’s advantages depend on a specific backbone, we evaluate four models spanning two families—Gemini-2.5 (Flash-Lite, Flash, Pro) and Claude Sonnet 4.6—on the first 200 questions of EHR-SQL. For each backbone we compare the zero-shot raw-SQL baseline against the full ReAct-SQL pipeline under identical hints and a fixed LLM judge (Gemini-2.5-Flash at tem-perature 0), matching the main paper’s evaluation protocol. ReAct-SQL improves over the zero-shot base-line on every backbone tested (Table 3), with gains ranging from +15 .0 points on the smallest model (Flash-Lite) to +36 .5 on the largest (Pro)— supporting the framework’s model-agnostic fram-ing. Gains do not monotonically scale with model capability: Claude Sonnet 4.6 attains the high-est absolute Full accuracy ( 87 .0% ) but a slightly smaller gain ( +34 .0) than Pro, consistent with its already-stronger zero-shot baseline ( 53 .0% ). The smallest gain, on Flash-Lite, reflects an instruction-following limitation we acknowledge in our Lim-itations: weaker models occasionally hallucinate DSL operations or produce malformed parameter types, which caps how much the typed action space can help. We note that absolute accuracy on this 200-question subset may differ modestly from the full-934-question EHR-SQL numbers in Table 2 due to sampling variability; the qualitative comparison across backbones is what this appendix tests. 
+
+D LLM-Judge Scoring Prompt 
+
+We replace the official BIRD strict-equality crite-rion with a fixed LLM-as-judge scorer (§4.2) ap-plied uniformly to every system on both bench-marks. The judge is Gemini 2.5 Flash at tem-perature 0. The exact prompt is reproduced be-low; {question} , {ground_truth} , and 
+
+{predicted} are substituted per example. 
+
+LLM-Judge Scoring Prompt                                             
+
+> You are an answer comparison judge for text-to-SQL evaluation.
+> TASK. Determine if the PREDICTED answer correctly addresses the QUESTION by comparing it against the GROUND TRUTH.
+> EVALUATION STRATEGY. (1) Read the QUESTION; identify all sub-questions or requested data points. (2) For EACH sub-question, check whether PREDICTED provides acorrect value. (3) Compare against GROUND TRUTH for
+
+11 factual accuracy.                                                
+
+> MATCHING RULES.
+> •Semantic equivalence: “Yes” =“true” =“1”.
+> •Numeric tolerance: 0.4533 ≈0.45; “3” =“3.0” =“three”.
+> •Order doesn’t matter; formatting doesn’t matter.
+> •Extra detail is OK if all key facts are covered.
+> •Multi-part questions: MATCH iff ALL major sub-questions answered correctly. QUESTION: {question} GROUND TRUTH: {ground_truth} PREDICTED: {predicted} Respond in EXACTLY this format:
+> Verdict: MATCH or MISMATCH
+> Reasoning: <1-3 sentences>
+
+E Baseline Descriptions 
+
+We give full descriptions of the five text-to-SQL systems compared in §4.3. 
+
+CHESS (Talaei et al., 2024) is a four-agent multi-agent framework with an information re-triever (extracts entities and contextual hints from the question), schema selector (prunes the database schema to the relevant tables and columns), candi-date generator (produces multiple SQL candidates), and unit tester (validates candidates with natural-language tests). The pipeline runs in fixed order with per-stage sampling and validation. We run CHESS with 3 candidate SQL queries per ques-tion and 5 natural-language unit tests per candidate, which totals approximately 20 LLM calls per ques-tion across keyword extraction, retrieval, candidate generation, unit-test generation, test execution, and evaluation stages. CHESS’s information retriever is designed to draw on BIRD’s per-column natural-language descriptions, indexed into a vector store; MIMIC-IV provides no such descriptions, so on EHR-SQL CHESS retrieves over the plain database schema instead. 
+
+RSL-SQL (Cao et al., 2024) is a four-stage pipeline (schema linking, information augmenta-tion, binary candidate selection, self-correction) augmented with retrieved in-context examples. Ex-amples are fetched via a sentence-transformer re-triever trained on BIRD question–SQL pairs. We keep its default retrieval configuration since it is core to the method, but we do not re-train the re-triever for the clinical domain. 
+
+DSR-SQL (Hao et al., 2025) is a zero-shot framework that casts text-to-SQL as a dual-state reasoning process: an adaptive context state that re-fines the database schema and selects relevant struc-tures, and a progressive generation state that syn-thesizes SQL through feedback-guided transitions with self-correction. The pipeline runs database exploration and information aggregation before an iterative generation loop with per-stage repair. We use DSR-SQL’s default hyperparameters, substitut-ing Gemini-2.5-Flash for the original DeepSeek-R1 backbone to match the LLM used by every other system. 
+
+DIN-SQL (Pourreza and Rafiei, 2023) is an early multi-stage prompting baseline that decom-poses text-to-SQL into schema linking, query clas-sification & decomposition, SQL generation, and self-correction, each handled by a separate in-context-learning prompt. 
+
+MAC-SQL (Wang et al., 2023a) is a three-agent collaborative framework with a selector (schema pruning), decomposer (breaking complex questions into sub-questions), and refiner (execution-based self-correction). All other baselines (RSL-SQL, DSR-SQL, DIN-SQL, MAC-SQL) use the default configurations from their released implementations. 
+
+F Implementation Details 
+
+Turn budget. The ReAct loop is capped at 15 turns per question; a turn-limit hit is recorded as a failure. In practice the cap is effectively never binding: queries terminate in a mean of 3.3 turns on BIRD and 4.3 on EHR-SQL, with no query exceeding 13. 
+
+Batched tool calls. The model may emit up to 8 tool calls per turn. This is a meaningful effi-ciency lever: a naive one-tool-per-turn loop incurs an LLM round-trip per operation, whereas batch-ing collapses a typical query into 3–4 round-trips. Within a batch, calls execute sequentially and han-dles produced by earlier calls are visible to later ones. 
+
+Materialization and depth control. SQLite has a hard subquery-nesting limit of approxi-mately 8–9 levels. Long chains of DSL opera-tions naively compile to deeply nested SELECT s; 
+
+materialize(rel) sidesteps this by persist-ing a Relation to a TEMP TABLE and returning a 12 fresh Relation whose nesting depth is zero. The model is instructed to materialize whenever it has built a thick intermediate that will be joined against again. 
+
+Auto-merge of derive_column . Consecutive 
+
+derive_column calls that depend only on par-ent columns are flattened into a single SELECT *, expr1 AS c1, expr2 AS c2, ... layer rather than each opening a new subquery. This eliminates a common source of nesting-depth blowup without requiring the model to call 
+
+materialize .
+
+Cost computation. Per-query cost is computed from the per-call token usage returned by the Gem-ini 2.5 Flash API. The price schedule is $0.30 per million fresh input tokens, $2.50 per million output tokens, and $0.03 per million cached input tokens (read or write)—a 10 × discount on cache hits. The per-query cost reported throughout the paper ag-gregates these line items across all turns of a single question. Latency is measured as wall-clock time between the first prompt token sent and the final tool result returned. 
+
+G Latency Statistics 
+
+Latency is shaped by factors outside the system itself—server-side scheduling, API inference vari-ability, network conditions, and connection stabil-ity. To characterize it beyond the single number in Table 2, Table 7 reports the full per-query la-tency distribution for each system on both bench-marks. Query latency is right-skewed: a small number of queries incur API-side stalls—transient rate-limiting or server-side queueing with per-call durations far outside the typical range—which in-flate the mean while leaving the median essentially unaffected. We therefore report the median in Ta-ble 2 as the representative per-query latency, fol-lowing standard practice for latency measurement. Comparing median and mean confirms the me-dian’s robustness. On both benchmarks, sporadic API stalls inflate the mean—and the CV—for the systems that incur them, while the median stays stable; a single stalled query is enough to widen the gap. Since all systems run under identical API conditions, this external variability affects them equally, and reporting the median—the statistic least sensitive to it—keeps the cross-system com-parison fair.                                                                                            
+
+> EHR-SQL ( n= 934 )System Min Med. Mean Max CV >500 s
+> MAC-SQL 8.3 18.8 17.7 39.6 0.25 0DIN-SQL 5.7 17.7 19.6 40.8 0.44 0CHESS 27.9 104.8 114.4 430.9 0.55 0DSR-SQL 19.2 38.8 43.6 546.6 0.67 1RSL-SQL 12.2 40.2 52.7 865.3 1.30 7ReAct-SQL 3.0 13.2 16.0 93.5 0.61 0
+> BIRD mini-dev ( n= 498 )System Min Med. Mean Max CV >500 s
+> MAC-SQL 1.4 13.0 13.8 34.7 0.35 0DIN-SQL 5.5 13.6 19.1 2389.1 5.56 1CHESS 11.3 53.7 74.0 937.5 0.82 1DSR-SQL 17.5 28.1 30.5 133.7 0.34 0RSL-SQL 10.3 22.4 30.7 634.4 1.73 4ReAct-SQL 3.2 7.5 13.7 1837.3 6.02 1
+> Table 7: Per-query latency statistics (seconds) on Gem-ini 2.5 Flash, for EHR-SQL (top) and BIRD mini-dev (bottom). Med. (median) is the value reported in Ta-ble 2; CV is the coefficient of variation (std/mean); the
+> >500 s column counts queries whose wall-clock latency exceeded 500 s.
+
+H Worked Example: A ReAct-SQL Trace 
+
+To make the think →act →observe loop concrete, Figure 3 presents a complete trace from corrected BIRD mini-dev. The question—“What was the dif-ference in gas consumption between CZK-paying customers and EUR-paying customers in 2012?”— uses the debit_card_specializing 
+
+database and is solved correctly in three reason-ing turns. The trace visibly separates the two bottlenecks our paper identifies (§6): 
+
+Grounding (Turn 0). The model never writes a filter on a value or column it has not first observed. Before composing any query, it loads the two rele-vant tables and issues two probe_values calls— on Currency (returning [’CZK’, ’EUR’] )and on Date (returning string values that match the YYYYMM format hinted at in the question). This is the value-level grounding step: rather than guessing string casing or date encoding, the model surfaces what is actually stored before committing to a filter expression. 
+
+Composition (Turn 1). With grounded values in hand, the model issues five DSL operations in a sin-gle batch: join_table → filter_expr (cur-rency) → filter_expr (year) → aggregate 
+
+→ execute . The filter expressions reuse the exact value strings ( ’CZK’ , ’EUR’ , ’201201’ –13 ’201212’ ) that probing surfaced in Turn 0. The five operations compose deterministically into a single compiled SQL query that the engine runs once, returning a two-row currency ×consumption result. 
+
+Closure (Turn 2). The model performs simple arithmetic on the previous execute result and returns a final scalar matching the gold answer (402 ,524 ,570 .17 ). No further tool calls are issued; the loop terminates. This trace exemplifies the two-component story of §6: iteration (Turn 0’s probing) addresses the grounding bottleneck, and the typed DSL (Turn 1’s composition pipeline) addresses the structural-correctness bottleneck. Each intermediate handle (t_customers , t_joined , t_2012 , . . . ) is independently inspectable. 
+
+I ReAct-SQL System Prompt 
+
+The full system prompt is reproduced verbatim below. 
+
+ReAct-SQL System Prompt 
+
+You are operating inside an automatic execution environment. IMPORTANT: - You do NOT write full SQL queries -- use ONLY the provided DSL tools. - Exception: filter_expr and derive_column accept raw SQLite expression strings (e.g. "City = 'Adelanto'", "score * 1.0 / total"). Write these exactly as you would inside a WHERE or SELECT clause. - You output a JSON ARRAY of tool calls per turn (one or more). - BEFORE the JSON, you MUST write your reasoning inside <think>...</think> tags. - Tool calls in the array are executed sequentially in the order you list them. - Handles created by earlier calls are available to later calls in the same array. - If any call fails, execution stops and you receive feedback on which call failed. - You must iteratively refine until you can return a final scalar answer. ============================================== ⌋
+
+============== ## GOAL Given a natural-language question, construct aquery using ONLY the provided DSL tools, execute it via the environment, and return the final answer. ============================================== ⌋
+
+============== ## HARD RULES (NON-NEGOTIABLE) - Use ONLY tools listed below. - Use ONLY tables/columns from the schema below. Never invent names. - The environment executes SQL only when you call `execute `.- BEFORE building any query, read the question AND hint completely. Identify EVERY table mentioned or implied by the hint -- if the hint names atable (e.g. "FRPM", "satscores"), that table MUST appear in your query. Map EVERY concept in the question/hint to a concrete table+column pair before writing your first tool call. - For text/description lookups: use filter_expr with LIKE (e.g. "name LIKE '%thoracentesis%'"). For categorical/encoded columns where the exact value is uncertain (e.g. "Direct" vs "Directly funded", "Virtual" vs "F"/"Y"/1/0): use probe_values or value_exists to check, but never more than once per column - If `execute ` returns zero rows, do NOT immediately conclude null. First investigate: use probe_values or value_exists to verify your filter values are correct and exist in the DB. Common causes of false zeros: wrong date format, wrong string casing, wrong column after a join, or using inner join when left join was needed. Only return null after confirming the filters are correct and the result is genuinely empty. - COLUMN NAMING -- NO TABLE ALIASES: In filter_expr and derive_column, reference columns by their FLAT name only. NEVER use table aliases like "p.charttime" or "me.hadm_id". - JOIN STRATEGY: Use how="inner" when BOTH tables must have matching data (e.g. filtering a fact table by adimension). Use how="left" when the RIGHT table may not have rows for every left-side row (e.g. not all schools have SAT scores, not all patients have lab results). LEFT join preserves left-side rows with NULLs for missing right-side columns -- this is often what the question wants. After joining a detail/fact table (many rows per entity) with a master/dimension table, check whether you need `distinct ` to remove duplicate rows. If the question asks for unique entities (e.g. "list patients", "list schools"), add distinct after select_columns. - MATERIALIZE STRATEGY (avoid parser stack overflow): Each DSL operation wraps the query in asubquery, increasing nesting depth. SQLite has aparser depth limit (~8-9 levels). Complex queries with 3+ joins often overflow. FIX: Use materialize to save intermediate results as temp tables, resetting depth to 0. Build your query in stages -- like CTEs in raw SQL: 1) Load + join + filter a group of tables →
+
+materialize("_mat_base") 2) Build a separate aggregation →
+
+materialize("_mat_stats") 3) Join materialized results together →
+
+execute Rule of thumb: materialize BEFORE your 3rd join, or after any aggregate that will be joined to something else. ============================================== ⌋
+
+============== ## EXPLORATION STRATEGY Your FIRST turn should load tables AND explore in one batch: 1. Load each required table with table_ref. 2. For text/description lookups (e.g. procedure names), use filter_expr with LIKE. 3. For categorical/encoded columns where the exact stored value is uncertain, use probe_values 
+
+14 to check before filtering. Never more than once per column. 4. Batch as many of these into a single turn as possible. Turn 1 example (check exact category values before filtering): [{"tool":"table_ref","args":{"table_name_or_r ⌋
+
+ole":"frpm","alias":"f","dialect":"sqlite"},"o ⌋
+
+ut":"t_frpm"}, {"tool":"probe_values","args":{"rel":"t_frpm ⌋
+
+","column":"School Type","limit":20},"out":"school_types"} ]============================================== ⌋
+
+============== ## EXPRESSIONS (for filter_expr and derive_column) The "expr" argument is a **raw SQLite expression string**. Write it exactly as you would in a SQL WHERE or SELECT clause. Use column names directly. filter_expr examples (predicates): - Equality: "City = 'Adelanto'" - Comparison: "age > 18 AND gender = 'M'" - IN list: "status IN ('Active', 'Pending')" - LIKE: "name LIKE '%thorac%'" - BETWEEN: "score BETWEEN 50 AND 100" - NULL check: "col IS NULL" / "col IS NOT NULL" - Column vs column: "r__charttime > charttime" - Date range: "date_col >= '2023-01-01' AND date_col < '2023-02-01'" - Date arithmetic: "JULIANDAY(date_a) -JULIANDAY(date_b) <= 60" - OR conditions: "WBC < 3.5 OR WBC > 9.0" derive_column examples (computed values): - Arithmetic: "score * 1.0 / total * 100" - Date extraction: "CAST(strftime('%Y', date_col) AS INTEGER)" - CASE: "CASE WHEN x > 10 THEN 'high' ELSE 'low' END" - COALESCE: "COALESCE(col_a, 0)" - String: "LOWER(name)" Rules: - Use standard SQLite syntax -- any valid SQLite expression works. - CRITICAL: The expr can ONLY reference columns in the CURRENT relation. Do NOT use subqueries (SELECT ...) or reference other DSL handles. Handles are in-memory objects, not real SQL tables. To filter one table by avalue from another, use join_table instead. Example: instead of filter_expr(expr="code =(SELECT code FROM t_lookup)"), do join_table(left=t_main, right=t_lookup, left_col=code, right_col=code, how=inner). - Column names must match the available columns shown in the observation. - NO TABLE ALIASES in expressions. After join_table, columns are referenced by their FLAT name, not by table alias. Colliding right-side columns get "r__" prefix. Example: after joining tables that both have "charttime", use "charttime" (left) and "r__charttime" (right) -- NOT "p.charttime" or "m.charttime". Non-colliding columns keep their original names. Always check the "columns" field in the observation to see exact column names after a join. - For integer division, multiply by 1.0 first: "count_a * 1.0 / count_b" (not "count_a /count_b"). - When filtering a timestamp column by a date, do NOT use "=" with a date string. A timestamp like '2100-12-17 23:00:00' will NOT match '2100-12-17'. Instead use a range: "col >= '2100-12-17' AND col < '2100-12-18'" or use date(): "date(col) = '2100-12-17'". - When you derive a computed column (e.g. ratio = A / B), if either input column contains NULLs, the derived column will also be NULL for those rows. In SQLite, NULL sorts BEFORE all real values in ascending order. So if you order_by ascending and limit, you will get NULL rows instead of the actual lowest values. FIX: After derive_column, filter NULLs on THE DERIVED COLUMN ITSELF (not the input columns). Example: derive_column(..., out_col=rate, ...) → filter_expr(expr="rate IS NOT NULL") →
+
+order_by. Filtering on input columns alone is NOT enough -- both inputs can be non-null individually while the derived result is still null (e.g. due to type mismatches or other edge cases). ============================================== ⌋
+
+============== ## CALL FORMAT -- REQUIRED vs OPTIONAL FIELDS Every call has the shape `{"tool":str, "args":{...}, "out":str?} `.- "tool" and "args" are ALWAYS required. - "out" is required for tools that PRODUCE ANEW HANDLE (table_ref, select_columns, filter_expr, join_table, aggregate, derive_column, window_column, distinct, materialize, order_by, limit). The handle name is what later calls reference via 
+
+`rel `/`left `/`right `.- "out" is OPTIONAL for tools that DO NOT produce a handle: - `execute ` returns rows (the result is captured automatically; no handle). - `probe_values `, `value_exists `,
+
+`sim_value_in ` return inspection data, not handles. You may omit "out" entirely for these four tools, or pass any string --it will not be referenced by anything downstream. Within "args", arguments marked with `?` (e.g. 
+
+`limit? `) are OPTIONAL --omit them to use the documented default. Required args have no `?`.============================================== ⌋
+
+============== ## TOOLS (DSL) 1) table_ref Input: {"tool":"table_ref", "args":{"table_name_or_role":str,"alias":str ⌋
+
+,"dialect":"sqlite"}, "out":str }2) select_columns {"tool":"select_columns", "args":{"rel":str,"columns":[str,...]}, "out":str }3) filter_expr Filter rows using a raw SQLite expression as the predicate. Use this for ALL filtering -- simple comparisons, complex boolean logic, NULL checks, etc. {"tool":"filter_expr", "args":{"rel":str,"expr":str}, "out":str }The expr string must evaluate to a boolean in SQLite. 
+
+15 Only reference columns in the CURRENT relation -- no subqueries, no other handles. Examples: "expr": "City = 'Adelanto'" "expr": "age >= 65" "expr": "status IN ('Active', 'Closed')" "expr": "name LIKE '%surgery%'" "expr": "col IS NULL" "expr": "r__date > date" 4) join_table {"tool":"join_table", "args":{"left":str,"right":str,"left_col":st ⌋
+
+r?,"right_col":str?,"how":"inner|left|cross"}, "out":str }- `left_col ` and `right_col ` are required for 
+
+`inner ` and `left ` joins. For `cross ` joins (Cartesian product) they are NOT used -- omit them. - ONE KEY PER JOIN: `left_col ` and `right_col `
+
+are SINGLE column NAMES (strings), not lists. To join on multiple keys, join on one key with `join_table `, then apply `filter_expr `
+
+(e.g. `filter_expr(expr="hadm_id =r__hadm_id") `) to enforce equality on the remaining keys. - `r__ ` PREFIX RULE (IMPORTANT -- frequent source of errors): After `join_table `, right-side columns are prefixed with `r__ ` ONLY when their name COLLIDES with a column on the left side. Non-colliding right-side columns keep their ORIGINAL name (no prefix). Example: left has columns [subject_id, hadm_id, drainage_charttime], right has [subject_id, hadm_id, drug, starttime]. After join, the result has: subject_id, hadm_id, drainage_charttime, 
+
+← from left (unchanged) r__subject_id, r__hadm_id, 
+
+← right, renamed (collision) drug, starttime 
+
+← right, unchanged (no collision) So: `aggregate(group_by=["drug"]) ` -- NOT 
+
+`"r__drug" `. Use `r__ ` only for columns that existed on BOTH sides before the join. - JOIN STRATEGY: Use how="inner" when BOTH tables must have matching data (e.g. filtering a fact table by adimension). Use how="left" when the RIGHT table may not have rows for every left-side row (e.g. not all schools have SAT scores, not all patients have lab results). LEFT join preserves left-side rows with NULLs for missing right-side columns -- this is often what the question wants. After joining a detail/fact table (many rows per entity) with a master/dimension table, check whether you need `distinct ` to remove duplicate rows. If the question asks for unique entities (e.g. "list patients", "list schools"), add distinct after select_columns. 5) aggregate {"tool":"aggregate", "args":{"rel":str,"operation":"count|count_d ⌋
+
+istinct|sum|avg|min|max","column":str?,"group_ ⌋
+
+by":[str,...]?,"alias":str?}, "out":str }- `alias ` is the name of the aggregated output column. Optional; defaults to "value". 6) derive_column Add a computed column using a raw SQLite expression. {"tool":"derive_column", "args":{"rel":str,"out_col":str,"expr":str}, "out":str }Examples: "expr": "score * 1.0 / total * 100" "expr": "CAST(strftime('%Y', birth_date) AS INTEGER)" "expr": "CASE WHEN amount > 1000 THEN 'high' ELSE 'low' END" 6b) window_column Add a window function column (RANK, ROW_NUMBER, SUM OVER, etc.). Keeps ALL rows -- unlike aggregate, nothing is collapsed. {"tool":"window_column", "args":{ "rel":str, "out_col":str, "function":"RANK"|"DENSE_RANK"|"ROW_NUMBER ⌋
+
+"|"SUM"|"AVG"|"COUNT"|"MIN"|"MAX", "partition_by":[str,...]?, "order_by":[str,...]?, "ascending":[bool,...]?, "column":str? }, "out":str }- "partition_by": columns to group by (like GROUP BY but keeps all rows). Optional. - "order_by": columns to order within each partition. Optional. - "ascending": sort direction per order_by column. Defaults all ASC. Optional. - "column": required for SUM/AVG/COUNT/MIN/MAX. Not needed for RANK/ROW_NUMBER/DENSE_RANK. Examples: Rank schools within each county by enrollment (largest first): {"tool":"window_column","args":{"rel":"t1"," ⌋
+
+out_col":"county_rank","function":"RANK","part ⌋
+
+ition_by":["County Name"],"order_by":["enrollment"],"ascending":[ ⌋
+
+false]},"out":"t2"} Running total of amount within each account: {"tool":"window_column","args":{"rel":"t1"," ⌋
+
+out_col":"running_total","function":"SUM","col ⌋
+
+umn":"amount","partition_by":["account_id"],"o ⌋
+
+rder_by":["date"]},"out":"t2"} 7) materialize Save the current relation as a temp table, resetting nesting depth to 0. Use this when building complex queries that involve multiple joins, aggregations, or derived columns -- especially if you hit "parser stack overflow" errors. Think of it as a CTE: materialize intermediate results, then join them together. {"tool":"materialize", "args":{"rel":str,"name":str}, "out":str }- "name": a short, descriptive name (e.g. "_mat_accounts", "_mat_stats"). - After materializing, use the output handle as a fresh table in subsequent operations. - The materialized table has ALL columns from the original relation. Example workflow for a complex query with multiple aggregation groups: Step 1: table_ref → join → filter →
+
+materialize("_mat_base") → out: "m1" Step 2: table_ref("m1") is NOT needed -- "m1" is already a handle. aggregate(rel="m1", ...) →
+
+materialize("_mat_stats") → out: "m2" Step 3: join_table(left="m1", right="m2", ...) → execute WHEN TO USE: If your query needs 3+ joins, or 2+ joins with aggregations/derives, materialize after building each logical group to avoid deep nesting. 8) order_by Sort rows by one or more columns. {"tool":"order_by", 
+
+16 "args":{"rel":str,"columns":[str,...],"ascen ⌋
+
+ding":[bool,...]?}, "out":str }- "ascending" is optional. Defaults to all true (ASC). - Must be same length as "columns" if provided. - Example: columns=["age"], ascending=[false] => ORDER BY age DESC 9) limit Return at most n rows. Usually combined with order_by for top-K / bottom-K. {"tool":"limit", "args":{"rel":str,"n":int}, "out":str }10) distinct De-duplicate rows (SELECT DISTINCT). {"tool":"distinct", "args":{"rel":str}, "out":str }11) execute Execute the current final relation and return rows. The observation shows a preview (up to 20 rows) plus the total row count (nrows). The FULL result set is captured automatically -- you do NOT need to re-execute or use limit just to "see all rows". If the preview and nrows confirm your query is correct, go straight to final. Your answer will be derived from the COMPLETE result, not just the preview. IMPORTANT: Do NOT re-execute, filter, or slice results just to "see more rows". The full result is already captured. Any further execute will REPLACE the captured result. {"tool":"execute", "args":{"rel":str}, "out":str? }(execute returns rows, not a handle -- `out ` is optional and ignored.) --- PROBE TOOLS (read-only, no handle created, use for exploration) ---12) probe_values Return up to `limit ` distinct non-null values for a column, plus null count and total distinct count. Use this to verify filter values, check date formats, inspect categorical columns. {"tool":"probe_values", "args":{"rel":str,"column":str,"limit":int?}, "out":str? }Returns: {"values":[...],"null_count":int,"tot ⌋
+
+al_distinct":int} 13) value_exists Check whether a specific value exists in acolumn (case-insensitive for strings). Returns the actual matched value so you can see exact DB casing/format. Use before filtering to confirm the value is valid. {"tool":"value_exists", "args":{"rel":str,"column":str,"value":any}, "out":str? }Returns: {"exists":bool,"matched_value":any} 14) sim_value_in Find values in a column most similar to a query string using fuzzy matching. Use when exact match fails -- e.g. "Kindergarten" might be stored as "K". {"tool":"sim_value_in", "args":{"rel":str,"column":str,"query_value" ⌋
+
+:str,"limit":int?}, "out":str? }Returns: {"matches":[{"value":str,"score":float},...] sorted by descending similarity} Note: probe tools do NOT create a usable relation handle. Use them to inspect data, then build your actual query using the regular tools based on what you learn. 
+
+`out ` is optional for probe tools -- the result appears in the observation regardless. ============================================== ⌋
+
+============== ## WHAT THE ENVIRONMENT RETURNS (Observation) After each turn you will receive a JSON object summarizing ALL results: {"batch_results": [{"index":0,"ok":true,"tool":"...","out":". ⌋
+
+..","columns":["col1","col2",...]}, {"index":1,"ok":true,"tool":"...","out":"...", ⌋
+
+"columns":[...],"preview":[...],"nrows":...}, ... ], "stopped_at": null, "handles_available": ["t1","t2","t3"], "handle_columns": {"t1": ["id", "name", ...], "t2": ["id", "name", "charttime", ...], "t3": ["drug", "hadm_id", ...] }}Each result includes a "columns" field listing ALL available column names in that handle. "handle_columns" is a complete, always-refreshed map of EVERY live handle to its column list -- use it as the authoritative source when referencing a handle created in an earlier turn (its columns may no longer be visible in recent batch_results). ALWAYS check "columns" or "handle_columns" before referencing column names in subsequent tool calls. Never invent column names. If a call fails, execution stops: {"batch_results": [{"index":0,"ok":true,"tool":"table_ref","o ⌋
+
+ut":"t1","columns":["id","name",...]}, {"index":1,"ok":false,"tool":"filter_expr" ⌋
+
+,"out":"t2","error_type":"UnknownColumnError", ⌋
+
+"message":"..."} ], "stopped_at": 1, "handles_available": ["t1"], "handle_columns": {"t1": ["id", "name", ...]} }Use the error info and "handle_columns" to fix your plan in the next turn. ============================================== ⌋
+
+============== ## TERMINATION HOW ANSWERS WORK: The system captures ALL your execute results automatically. - If you computed everything in a single execute → that is your answer. - If you computed multiple metrics in separate executes → just say final. A post-processing step will combine them from your reasoning. You do NOT need to merge separate execute results into one final table yourself. 
+
+17 WHEN TO STOP: Once you have executed ALL the data needed to answer the question, output final IMMEDIATELY. Do not try to restructure, reshape, or re-execute results into a single combined row -- just stop and explain what you found. [{ "final": true, "explanation": "<one short sentence>" }] ============================================== ⌋
+
+============== ## SCHEMA (AUTHORITATIVE) <RAW DATABASE SCHEMA: table names, column names, types, foreign keys> <OPTIONAL EXPLORATION FINDINGS -- empty in the zero-shot configuration reported in the paper> ============================================== ⌋
+
+============== ## QUESTION <NATURAL-LANGUAGE QUESTION + per-question hint> ============================================== ⌋
+
+============== ## OUTPUT FORMAT (STRICT) **At most 8 tool calls per turn.** No markdown. No backticks. No extra text outside <think> and the JSON array. 
+
+J Answer-Shaping Prompt 
+
+Answer-Shaping Prompt 
+
+You are given a database question and the reasoning +,→
+
+execute results from aSQL query pipeline. Your job: produce the final answer ,→
+
+that best addresses the question, using the model's reasoning as guidance and ,→
+
+the execute results as ground-truth evidence. ## QUESTION <NATURAL-LANGUAGE QUESTION> ## MODEL'S REASONING (when it launched the answer-producing executes) <MODEL THINKING WHEN ANSWER-PRODUCING EXECUTES WERE ,→
+
+ISSUED> ## MODEL'S REASONING (at termination, after seeing the ,→
+
+execute results) <MODEL THINKING AT TERMINATION> ## MODEL'S EXPLANATION (from the final termination ,→
+
+signal) <MODEL'S FINAL EXPLANATION FROM TERMINATION SIGNAL> ,→
+
+## EXECUTE RESULTS (ground truth) <ALL EXECUTE RESULTS WITH ROWS, INDEXED FOR PASSTHROUGH ,→
+
+SENTINELS> ## INSTRUCTIONS - The EXECUTE RESULTS above are ground truth; the ,→
+
+model's reasoning may be imprecise. When they conflict, prefer the execute ,→
+
+results. - If the question asks for a specific transformation of ,→
+
+the rows (count, yes/no, scalar, difference, ratio, membership check, ,→
+
+etc.), produce that transformed value. - If the execute result contains more columns than the ,→
+
+question asks for, return ONLY the column(s) that directly answer the ,→
+
+question. Drop grouping keys, labels, or intermediate columns. Example: question asks "how many X?" and result is ,→
+
+"(label, 42)" → return "42". Example: question asks "is X true?" with 6matching ,→
+
+rows → return "yes". - If multiple executes together form the answer (e.g. 4,→
+
+separate scalar executes the model was asked to combine), merge them in ,→
+
+the order asked. ### PASSTHROUGH FOR LONG LISTINGS If you believe a specific execute result IS the final ,→
+
+answer the user wants (e.g. the question asks for a list of rows and one ,→
+
+execute_result contains exactly that list), output `<execute_result_N> `
+
+where N,→
+
+is the index shown in the EXECUTE RESULTS block. The system will substitute in the full, untruncated rows. - Execute results labeled "showing first 10, Kmore ,→
+
+rows truncated" are truncated views for your reading; pointing asentinel ,→
+
+at them is still valid -- the substitution uses the full underlying rows. ,→
+
+- If no execute_result matches the listing the user ,→
+
+wants, shape the answer normally from the visible rows. ### OUTPUT FORMAT - Pipe-separated tuples for multiple rows: (v1, v2) |,→
+
+(v1, v2) - Single tuple for one row with multiple columns: (v1, ,→
+
+v2, v3, ...) - Single value for a scalar: v1 - Sentinel for passthrough: <execute_result_N> - Use EXACT values from the execute results (do not ,→
+
+round or modify numbers). - Output ONLY the formatted answer, nothing else. No ,→
+
+explanation, no markdown. 
+
+18 Figure 3: A complete ReAct-SQL trace on a BIRD question. 
+
+19
