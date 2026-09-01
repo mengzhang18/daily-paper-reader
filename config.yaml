@@ -25,3 +25,66 @@ subscriptions:
     stage: A
     diff_threshold_pct: 15
   keyword_recall_mode: or
+  intent_profiles:
+    - tag: sdl
+      description: 查询关于语义查询处理、语义算子、大语言模型驱动的数据库系统、语义过滤、非结构化查询相关的论文
+      enabled: true
+      paper_sources:
+        - arxiv
+      keywords:
+        - keyword: semantic query processing
+          keyword_cn: 语义查询处理
+          query: semantic query processing techniques
+        - keyword: semantic operators
+          keyword_cn: 语义算子
+          query: semantic operators in database systems
+        - keyword: large language model database systems
+          keyword_cn: 大语言模型驱动的数据库系统
+          query: LLM-powered database systems for semantic query processing
+        - keyword: semantic query optimization
+          keyword_cn: 语义查询优化
+          query: semantic query optimization in relational databases
+        - keyword: semantic filter
+          keyword_cn: 语义过滤
+          query: semantic filtering of unstructured data
+        - keyword: unstructured query processing
+          keyword_cn: 非结构化查询处理
+          query: processing unstructured queries with semantic understanding
+      intent_queries:
+        - query: How do semantic operators improve query processing in database systems?
+          query_cn: 语义算子如何改进数据库系统中的查询处理？
+          enabled: true
+          source: manual
+          note: ''
+        - query: What are the approaches for integrating large language models into database query engines?
+          query_cn: 将大语言模型集成到数据库查询引擎的方法有哪些？
+          enabled: true
+          source: manual
+          note: ''
+        - query: How do semantic operators improve query processing in LLM powered database systems?
+          query_cn: 语义算子如何在大语言模型驱动的数据库系统中改进查询处理？
+          enabled: true
+          source: manual
+          note: ''
+        - query: What methods exist for semantic filtering of unstructured queries?
+          query_cn: 对非结构化查询进行语义过滤有哪些方法？
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-09-01T01:53:57.031Z'
+      paused: false
+source_backends:
+  arxiv:
+    papers_table: arxiv_papers
+    use_vector_rpc: true
+    vector_rpc: match_arxiv_papers
+    vector_rpc_exact: match_arxiv_papers_exact
+    use_bm25_rpc: true
+    bm25_rpc: match_arxiv_papers_bm25
+    sync_table: arxiv_sync_status
+    sync_success_value: success
+    schema: public
+    kind: supabase
+    enabled: true
+    url: https://lyucdwgefyfbmaiopjbk.supabase.co
+    anon_key: sb_publishable_lX-oi64Uxyd7SIVv3_w2Uw_MTOojeKq
