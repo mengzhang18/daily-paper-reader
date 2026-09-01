@@ -1,0 +1,424 @@
+Title: Structure then Query: Enabling Precise Analytical Queries over Unstructured Documents
+
+URL Source: https://arxiv.org/pdf/2608.13384v1
+
+Published Time: Fri, 14 Aug 2026 01:10:48 GMT
+
+Number of Pages: 14
+
+Markdown Content:
+# Structure-then-Query: Enabling Precise Analytical Queries over Unstructured Documents 
+
+Teng Lin 
+
+DSA Thrust HKUST(GZ) 
+
+Guangzhou, China tlin280@connect.hkust-gz.edu.cn 
+
+Yuyu Luo 
+
+DSA Thrust HKUST(GZ) 
+
+Guangzhou, China yuyuluo@hkust-gz.edu.cn 
+
+Nan Tang 
+
+DSA Thrust HKUST(GZ) 
+
+Guangzhou, China nantang@hkust-gz.edu.cn 
+
+Abstract —Unstructured documents constitute the majority of enterprise and web data. With the rapid development of large language models(LLMs), researchers have started to build data systems that analyze unstructured textual documents like operating on databases. However, because mainstream retrieval methods still relies on fuzzy matching based on vector similarity, accurately obtaining information and performing structured analysis and reasoning remains a major challenge. To address these limitations, AnnoIndex introduces two core fundamental components. The first is Annotation Index. The system uses a module called SchemaLoop to automatically create hierarchi-cal annotation schemas from the raw corpus, and then uses lightweight language model to extract specific values. It turns scattered unstructured text into a materialized, structured index that enables low-cost filtering and querying. The annotation index avoids the black-box matching of vector similarity and amortizes attribute extraction costs from online queries to a one-time build. The second innovation is a Structured Query Engine. It compiles user questions into execution plans based on SQL extension. It first uses the Annotation Index for precise documents filtering, then gradually applies extraction operations in ascending order of cost, resorting to LLMs only for the remaining minimal fraction of the corpus that require deep semantic understanding. The extracted attributions are merged into the annotation index, re-ducing the cost of future queries. Experiments on three real-world datasets demonstrate that AnnoIndex consistently outperforms state-of-the-art baselines, achieving the highest average F1 score (0.87) while maintaining robust performance on complex multi-hop join and progressive reasoning queries. Through intelligent structuring, AnnoIndex establishes a new approach for cost-effective, precise, and scalable unstructured document analysis. 
+
+I. I NTRODUCTION 
+
+Unstructured documents, including Word, PDF documents and web pages, constitute the majority of enterprise and world data [1]; yet, their lack of explicit structure makes precise information retrieval and analysis fundamentally dif-ficult [2], [3]. Transforming free text into queryable, struc-tured knowledge, is thus critical for high-precision question answering, complex analytical reasoning, and integration with downstream business intelligence systems [4], [5], [6], [7]. So 
+
+How can we transform massive unstructured text corpora into an instantly queryable structured resource that supports high-precision analytical queries ? With the rapid development of LLMs, many data systems have attempted to analyze unstructured text in a way similar to querying a relational database [5], [6], [8]. However, this goal remains unachieved due to two fundamental challenges. The first challenge is precise information retrieval. Existing retrieval methods mostly rely on vector similarity based on dense embeddings [9], [10], [11]. These methods perform a kind of fuzzy semantic matching: they can find documents that are ”roughly about” a topic, but they cannot enforce precise attribute-level conditions such as ”birth year is before 1985” [12]. As a result, the retrieved set often misses relevant documents while pulling in a large amount of irrelevant material. This forces downstream systems to use LLMs to check, correct, and re-judge the initial results, which is both expensive and evidence filtered out early cannot be recovered by downstream reasoning [13]. More worse, the noise mixed into the context can mislead the language model into generat-ing wrong answers. The second challenge is structured analysis of retrieved in-formation, a task at which LLMs are inherently not adept [14], [3], [15]. Analytical queries often go beyond simply finding relevant documents. Users frequently need to perform statis-tical operations such as grouping, aggregation, comparison, and joining across multiple documents [4], [6]. For example, one might ask ”What is the average age of active players who have won more than five championships in NBA?” or ”Find all Judgments on Conflict between Local Environmental Regulation and Superior Law?” Answering such questions essentially requires SQL-like operations across multiple docu-ments. The difficulty is that unstructured text lacks an explicit table structure. The system must therefore extract specific attribute values and materialize them as indexable fields. Existing approaches fall into two dominant methodologies, each with severe limitations. The retrieve-then-extract pipeline, commonly seen in vector databases combined with retrieval-augmented generation (RAG) [9], [16], [17], uses dense embeddings to retrieve relevant chunks and then invokes a language model to extract specific attributes [6]. Its foundation on vector similarity is inherently coarse-grained: embeddings are optimized to capture overall topic similarity, not to enforce precise attribute-level constraints. Consequently, this approach suffers from both low precision and high cost, because the language model must process a large amount of noisy context for each query. arXiv:2608.13384v1 [cs.IR] 13 Aug 2026 The second methodology is the extract-all-then-query ap-proach, commonly used in knowledge graph based systems such as GraphRAG [18], [19]. These methods pre-extract all entities and relations from the entire corpus into a knowledge graph, and then support structured queries over the graph. However, the upfront extraction is extremely expensive, as it requires invoking large language models on every document in the corpus. A more fundamental problem is that a knowledge graph is essentially a relation explorer, not a data analysis engine. It excels at answering relation-oriented exploratory questions, but when faced with structured queries that require filtering, comparison, and aggregation, it cannot directly per-form algebraic operations like a database. Instead, it can only rely on LLMs to reason over retrieved subgraphs. Studies have shown that even when all the required information is already present in the retrieved results, the reasoning error rate of such systems remains high [14], [3], [20]. This suggests that another real bottleneck lies in the lack of capability to execute structured queries and perform reliable reasoning. To address these challenges, we propose AnnoIndex, an annotation-driven document analysis system built on two core components. The first component is an offline struc-tured annotation index. We introduce a module called SchemaLoop, which automatically derives multi-granularity, retrieval-oriented annotation schemas directly from the raw document corpus. An annotation model is then applied offline to extract per-field values, thereby converting the fragmented unstructured text into a structured index that allows for low-cost filtering. Once this index is built, precise attribute-level filtering, such as birth year ¡ 1985, can be executed as a simple numerical comparison, requiring no LLM calls at all. The cost of attribute extraction is paid once and amortized across all subsequent queries. The second component is a structured query engine that compiles natural language queries into execution plans similar to SQL. It first uses the structured index to apply precise field-level filtering over the entire corpus, dramatically shrinking the candidate document set. Then, it gradually applies EXTRACT operations in ascend-ing order of cost: regular expressions first, then lightweight models, and finally, for the very small set of documents that survive the previous filters, LLM is invoked for deep semantic reasoning. Importantly, the results of these extraction operations are retained and incorporated into the structured index. This enables subsequent queries to reuse previously extracted values without incurring the cost again. We have implemented AnnoIndex and evaluated it on three real-world datasets from different domains. Experimental re-sults show that AnnoIndex outperforms state-of-the-art base-lines, and performs robustly on complex multi-hop join queries and progressive reasoning tasks. The results demonstrate that by building a structured annotation index offline and then executing structured queries online, we can greatly reduce reliance on LLMs without sacrificing accuracy, offering a prac-tical and cost-effective path for large-scale, precise analysis of unstructured documents. In summary, this paper makes the following contributions:  
+
+> •
+
+Offline materialization paradigm. We shift attribute ex-traction from online query time to a one-time offline build, enabling precise structured filtering without LLM invocation and breaking the linear cost model.  
+
+> •
+
+We propose SchemaLoop. An automated, closed-loop framework that inducts hierarchical schemas directly from raw corpora, ensuring both extractability and fil-tering efficiency without manual engineering..  
+
+> •
+
+We design a Structured query engine. A progressive execution engine that compiles natural language into SQL-like plans, applies extraction models in ascending cost order, and persists extracted values into the index, causing marginal query cost to decrease with repeated use.  
+
+> •
+
+We build AnnoIndex and demonstrate through extensive experiments on three real-world datasets that it achieves state-of-the-art accuracy while radically reducing online LLM costs compared to existing approaches. II. R ELATED WORK 
+
+A. Document Parsing and Preliminary Structuring 
+
+Converting raw documents into a machine-readable format is the first step in any retrieval or analytical system. A mature ecosystem of layout analysis and content extraction tools exists for this purpose. Frameworks such as DeepDocetection [21] and DocETL [22] provide robust pipelines for complex doc-uments, performing optical character recognition, layout seg-mentation, table extraction, and logical structure reconstruc-tion. General-purpose libraries like Unstructured.io [23] offer unified interfaces to parse diverse file formats (PDF, Word, HTML) into clean text chunks, which are then typically fed into downstream retrieval-augmented generation (RAG) pipelines [24]. However, these tools primarily focus on preserving physical or logical document structure (e.g., titles, paragraphs, tables), not on inducing semantic schemas tailored to specific analyt-ical tasks. Their output is often vectorized for fuzzy semantic search, which, as we argue, is insufficient for precise attribute-level queries. In contrast, AnnoIndex incorporates foundational parsing capabilities but directs the extracted text toward a schema-driven structuring engine, bridging the gap between generic document digitization and task-aware knowledge ma-terialization. 
+
+B. Structured Extraction and Database Systems for Unstruc-tured Text 
+
+A growing line of research has sought to enable SQL-like querying over unstructured text by treating large lan-guage models (LLMs) as on-the-fly attribute extractors. Systems like Docopus [25], DocDB [26], QUEST [6], ELEET [27], ZenDB [5], and Unify [28] have advanced cost-efficiency through index-based filtering, adaptive execution plans, and small-model substitution. Hybrid frameworks such as ACORN [29] and ARCADE [30] combine dense vector retrieval with structured predicates. Despite their progress, all these systems share a critical limitation: they cannot adapt to heterogeneous corpora where the relevant attributes vary across document clusters, and they incur high online LLM costs because attribute extraction is performed during query execution (even with caching). On the other end of the spec-trum, knowledge-graph-based systems (e.g., GraphRAG [18]) pre-extract all entities and relations from the corpus into a graph, then support Cypher-style queries. However, the upfront extraction cost is linear in corpus size, and the static graph schema cannot cover ad-hoc query predicates not anticipated during construction. Moreover, as we demonstrate, knowledge graphs are relation explorers rather than analytical engines; they cannot directly perform algebraic operations and must resort to LLM reasoning over subgraphs, which remains error-prone and expensive. 
+
+C. Automated Schema Induction 
+
+Automatically deriving schemas from unstructured or weakly labeled data has recently attracted attention. Au-toSchemaKG [31] proposes a fully autonomous framework for knowledge graph construction that uses LLMs to extract triples and induce schemas simultaneously, achieving high semantic alignment with human-crafted schemas without manual inter-vention. SQUiD [32] introduces a neuro-symbolic approach to synthesize relational database schemas and populate tables from raw text, targeting table-like extraction. However, these methods suffer from two fundamental limitations. First, they rely heavily on large language models throughout the entire schema discovery process. This makes deployment at scale economically prohibitive for most real-world applications. Second, both methods operate as one-time, batch-style synthe-sis tasks. Once the schema is produced, there is no validation loop to assess whether the schema is actually extractable, or whether the extracted values are consistent. This stands in stark contrast to AnnoRe’s closed-loop approach. III. P RELIMINARIES 
+
+Before delving into the architecture of AnnoIndex, we first formalize the problem of precise analytical querying over unstructured documents and analyze the inherent limitations of existing mainstream approaches. 
+
+A. Problem Formulation 
+
+Let D = {d1, d 2, . . . , d N } be a corpus of unstructured documents, where each document di is a free-text sequence without explicit attribute-value structure. Our goal is to support high-precision analytical queries over D. A query q can range from simple attribute filters and conjunctive/disjunctive com-binations, to joins across implicit document relations, and to multi-step progressive reasoning that demands deep semantic understanding. An attribute a refers to a semantic field of interest that can be extracted from documents, such as “birth year,” “team name,” or “court name.” Each attribute has a value 
+
+v = value (di, a ), which is the specific piece of information contained in document di for that attribute. For example, in a biographical document, the attribute “birth year” may have the value “1985”; in a legal document, the attribute “court name” may have the value “Supreme Court.” A schema S is a set of attributes A = {a1, a 2, . . . , a m} that defines which fields should be extracted from documents. A schema is retrieval-optimized if its attributes enable precise filtering (e.g., numerical comparisons, equality checks). A structured index is a materialized annotation store that associates each document di with its extracted attribute values according to a given schema S. Formally, the index is a collection of tuples {(di, v(di)) }Ni=1 , where v(di) =(vi, 1, v i, 2, . . . , v i,m ) is the assignment of document di over the attribute set A, with vi,j = value (di, a j ). This index enables field-level filtering and analytical operations, such as equality checks, range comparisons, and logical combinations directly on the materialized values. 
+
+Definition 1 (Structured Retrieval over Unstructured Docu-ments) . Given a document corpus D and a natural-language query q, the structured retrieval task is to return a set of doc-uments (or tuples derived from documents) that exactly satisfy all constraints expressed in q. These constraints include, but are not limited to:  
+
+> •
+
+Exact attribute matches, e.g., nationality = ‘Canadian’.  
+
+> •
+
+Range conditions, e.g., birth year < 1985 . 
+
+> •
+
+Logical combinations of attributes and ranges using AND/OR.  
+
+> •
+
+Multi-step reasoning predicates, e.g., determining whether a provision in a legal document conflicts with a superior law.  
+
+> •
+
+Joins across implicit document relations: e.g., joining player documents with team documents on team_name .
+
+This task is fundamentally difficult because the information needed to answer q is buried in free text, and these attribute values must be extracted from the raw text. More complex queries compound this difficulty: they require not only locating multiple attributes but also combining them through logical operators, aggregating across documents, and reasoning over implicit relationships. In short, the system must perform both precise information location and structured analytical reasoning over text that provides neither explicit fields nor clear relational structure. 
+
+B. Limitations of Existing Methods 1) Failure in Information Location: Mainstream retrieval methods rely on vector similarity, which encodes documents and queries into dense vectors and returns the top-K most similar items. This mechanism inherently captures topic prox-imity rather than predicate satisfaction. When a query specifies precise attribute-level conditions, such as “birth year before 1985”, vector retrieval cannot guarantee that the returned documents actually satisfy these constraints. It may retrieve many topically relevant but attribute-mismatched documents, while omitting those that meet the conditions but are not semantically prominent. As a direct consequence, downstream systems must invoke LLMs to examine each retrieved document against all specified attribute predicates. This incurs a cost that grows linearly with the number of retrieved documents, and LLMs are prone to errors or omissions when processing lengthy or noisy contexts. Moreover, documents that are incorrectly filtered out at this early stage cannot be recovered later, and the irrelevant context mixed into the prompt may mislead the LLM into generating wrong answers. 
+
+2) Failure in Analytical Reasoning: Even when relevant documents are correctly located, many analytical queries demand structured operations such as filtering, aggregation, comparison, and multi-document joins. These operations are essentially algebraic in nature and require the data to be orga-nized in a relational table format with well-defined attributes. Vector-based retrieval returns an unordered set of text chunks without any relational schema, making it impossible to directly apply such algebraic operators. Knowledge-graph-based methods pre-extract entities and relations, but they func-tion primarily as relation explorers suited for path traversal and neighborhood queries; they cannot perform aggregation over filtered sets or join arbitrary sets of entities without explicit edges. To answer a query like “find the average age of players from teams that have won more than five championships,” the system must feed the relevant subgraph to an LLM for reasoning. This approach is both unreliable and expensive, as the cost scales with the size of the subgraph. Crucially, neither paradigm decouples the cost of attribute extraction from query execution. Each query may trigger repeated expensive extraction or reasoning, leading to a cost model that scales linearly with query frequency. This structural limitation makes it impractical to support large-scale, high-concurrency analytical workloads that demand both precision and efficiency. IV. S CHEMA LOOP : P ROGRESSIVE SCHEMA INDUCTION 
+
+SchemaLoop is a progressive, closed-loop schema induc-tion framework that draws inspiration from the fundamental construction patterns of relational databases to automatically discover annotation schemas from raw document corpora. SchemaLoop adopts an iterative “hypothesize-verify-refine” approach that operates across three granularity levels. It first determines the dataset-level schema to partition the corpus into logical databases; then induces the table-level schema to group documents into entity categories; and induces the document-level schema to define the specific fields to be extracted from each document. 
+
+A. Overview of the Three-Layer Architecture 
+
+As shown in Figure 1, SchemaLoop draws inspiration from the three-layer structure of relational databases to discover three layers of annotation schemas from document corpus D:the dataset-level schema Sdb , the table-level schema Stable ,and the document-level schema Srow . The design of these three layers follows the principle of retrieval efficiency pri-oritization: each layer assumes a specific filtering responsi-bility, progressively pruning the search space layer by layer, so that document-level filtering ultimately processes only a minimal number of documents. At each level, SchemaLoop generates diverse candidate schemas, employs lightweight language models for multi-task information extraction across all documents, and iteratively refines the annotation schemas based on extraction results. Dataset-level schema is pre-defined by humans and serves as the root node of the entire schema system. Let Sdb =
+
+{A db } denote the dataset-level schema, where Adb =
+
+{adb  
+
+> 1
+
+, a db  
+
+> 2
+
+, . . . , a db  
+
+> p
+
+} is the set of attributes defined by this schema, such as “data source” and “domain” and “database name.” These attributes apply to all documents, and their values are obtained directly from document descriptions (de-scriptions of data collection and the titles of the documents, etc.) without requiring content parsing. Each document di
+
+has values vdb (di) = ( vi, 1, v i, 2, . . . , v i,p ) under the dataset-level schema, where vi,j is the specific value of document di
+
+on attribute adb  
+
+> j
+
+. The dataset-level schema maps documents to different logical databases: all documents with the same assignment vector belong to the same logical database. This layer provides the coarsest-grained filtering. Table-level schema is generated by LLMs based on the results of the dataset-level annotations, which is illustrated in Figure 1-a. Let Stable = {A table } denote the table-level schema, where Atable = {atable  
+
+> 1
+
+, a table  
+
+> 2
+
+, . . . , a table  
+
+> q
+
+} is the set of attributes defined by this schema, such as “entity type” and “sub-area.” These attributes also apply to all documents, and their values are derived from document content(document summary or first paragraph). Each document di has val-ues vtable (di) = ( vtable  
+
+> i, 1
+
+, v table  
+
+> i, 2
+
+, . . . , v table  
+
+> i,q
+
+) under the table-level schema. The table-level schema determines which “table” a document belongs to. This layer provides medium-grained filtering, during query execution, the system can further narrow the document scope based on table-level attribute values, retaining only tables relevant to the query topic. Document-level schema is generated by LLMs based on the table-level annotations. It should be clarified that the term “document-level schema” corresponds to the column definition in relational databases. Let each table Tk be asso-ciated with a document-level schema Sdoc (Tk) = {A doc (Tk)},where Adoc (Tk) is the set of attributes defined by this schema, equivalent to the column definitions of the table, such as “case name” or “decision date”. Adoc (Tk) applies to all documents in table Tk, meaning that all documents belonging to the same table share the same set of document-level attributes (i.e., the same column structure). Different tables may have completely different document-level attribute sets. Each document di (belonging to table Tk) has values 
+
+vdoc (di) = (v(k) 
+
+> i, 1
+
+, v (k) 
+
+> i, 2
+
+, . . . , v (k) 
+
+> i,r k
+
+) under the document-level schema, representing the specific values across all columns. This layer provides the finest-grained precise filtering: during query execution, the system can directly perform numerical comparisons and logical operations on document-level at-tributes, just as condition filtering on columns in a relational database. The three layers together constitute the complete annotation Fig. 1: The figure a shows SchemaLoop’s three-layer hierarchical annotation schema induction. The framework automatically derives a dataset-level schema (global metadata), a table-level schema (entity categories), and a row-level (document-level) schema (fine-grained attributes) from raw unstructured documents. The figure b illustrates the verification feedback mechanism: extraction success rates are computed for each candidate schema; low rates trigger iterative refinement (e.g., merging, splitting, or redefining fields) until the schema converges, ensuring both extractability and filtering efficiency. schema system: 
+
+S = ⟨S db , Stable , {S row (Tk)}Tk ∈T ⟩.
+
+Each layer follows a closed-loop iteration: generate can-didate schemas, deduplicate, perform multi-task extraction across all documents, and refine schemas based on extraction results. Let the candidate schema space be S, and the feedback function be Φ : S × D → S. The iteration process is: 
+
+S(r+1) = Φ( S(r), D),
+
+where r is the iteration round. Iteration continues until schema convergence. 
+
+B. Operations for Schema Induction 
+
+Throughout the three-layer schema induction process, SchemaLoop applies a set of operations that ensure consis-tency, quality, and usability of the schemas. 
+
+a) Normalization: . After extraction, SchemaLoop fur-ther applies a value normalization step to ensure semantic and syntactic consistency across all extracted attribute values. This step automatically standardizes representations for common data types: dates are converted to a unified format (e.g., ISO 8601), numerical values are expressed with consistent units and decimal notations, and categorical strings are trimmed, lowercased, and stripped of extraneous punctuation. Nor-malization is essential for enabling reliable filter operations because it eliminates superficial variations that would other-wise cause false mismatches or missed matches during query execution. The normalization rules are derived from frequent value patterns observed in the corpus and are iteratively re-fined through the same closed-loop feedback mechanism used for schema induction, ensuring that the standardized values preserve the original information while supporting precise and efficient structured retrieval. 
+
+b) Candidate Schema Generation.: Documents with the same up-level annotation are grouped together. Let the g-th group be Dg = {di | v(di) = vg }. For each group Dg , LLM generates candidate schemas based on up-level annotation values vg :
+
+S(vg ) = LLM (vg , prompt ).
+
+c) Deduplication.: SchemaLoop generates multiple can-didate schemas, often producing semantically equivalent vari-ants. To avoid redundant annotation and confusion, the system performs deduplication by comparing candidates for seman-tic equivalence. Equivalence is determined using lightweight synonym matching and embedding similarity. For each equiv-alence class, only one representative is retained. This step is applied after each generation, reducing the search space and ensuring that the final schema set contains only genuinely distinct structures, thereby improving efficiency and clarity. 
+
+d) Verification and Feedback.: As is shown in Figure 1-b, SchemaLoop performs a verification phase that extracts all specified attribute values from the subset of corresponding document set(random 5 documents). The extraction results are then evaluated against two key metrics to determine whether the schema is useful and reliable. The first metric is the extraction success rate , which measures the fraction of non-empty values successfully ex-tracted across all attribute–document pairs. For a given schema 
+
+S = {A} applied to a document group Dg , the success rate is defined as the ratio of successful extractions (where the extracted value is not null or empty) to the total number of possible extractions. The extraction success rate is defined as: SR (S) = 1
+
+|D g | · |A| 
+
+X
+
+> d∈D g
+
+X
+
+> a∈A
+
+1[value (d, a )̸ = ∅].
+
+In addition to the extraction success rate, the system also computes the filtering efficiency of the schema, which quan-tifies how evenly the documents are distributed across the distinct value combinations of the schema. Specifically, it is defined as one minus the maximum fraction of documents that share the same assignment vector. If most documents have identical values for the schema attributes, then the schema offers little discriminative power. Filtering efficiency is defined as: FE (S) = 1 − max 
+
+> v
+
+|{ d ∈ D g | v(d) = v}| |D g | .
+
+If either metric falls below a predefined threshold, the system analyzes the failure patterns and feeds them back to the LLM with diagnostic instructions, prompting it to refine the schema, for example, by merging overly fine-grained attributes, splitting overly broad ones, or adjusting field descriptions to improve extractability. This closed-loop process iterates until the metrics stabilize, ensuring that the final schema is both highly extractable and maximally effective for reducing query search space. 
+
+C. Complexity and Cost Analysis 
+
+SchemaLoop runs entirely offline, with its complexity de-termined by the following factors. 
+
+Iteration Complexity. The number of feedback loop it-erations is constrained by convergence speed. Empirically, document-level induction converges within 3 to 5 iterations, and table-level induction requires even fewer iterations. 
+
+Model Invocation Cost. The dataset level requires no large language model invocation. The table and row levels use large language models to generate candidate schemas, but each document group (i.e., each logical database group or each table) requires only one invocation. The verification phase performs multi-task extraction across all documents using lightweight language models, with costs far lower than full large language models. Only in the final verification phase of document-level induction may full large language models be invoked when necessary. 
+
+Retrieval Efficiency Gains. The structured index generated by SchemaLoop reduces the document scanning scope during query execution from |D| to: 
+
+|D residual | = |D| · (1 − FE (Stable )) · (1 − PR (Srow )) ,
+
+where FE is the filtering efficiency of the table-level schema, and PR is the precision of the document-level schema. Experi-ments on three real-world datasets show that this compression ratio is typically on the order of 10 2 to 10 3, ensuring that expensive LLM calls are limited to a minimal number of candidate documents. 
+
+Amortization Effect. All costs of SchemaLoop are one-time offline investments. Once the schema is constructed, the structured index need only be populated once and can be queried repeatedly without incurring further schema discovery costs. For high-frequency query scenarios, this offline-build, online-reuse cost structure is significantly superior to online schemes that perform extraction for every query in the long run. Experiments on three real-world datasets show that for a corpus containing 1,600 documents, the complete schema induction and index construction cost is equivalent to the cost of only 1 to 2 online queries of LLMs. 
+
+D. Multi-Loop Engineering and External Feedback Integra-tion 
+
+Fig. 2: Multi-loop engineering in SchemaLoop’s closed-loop schema refinement. These interconnected loops will ensure reliable unstructured document analysis. Figure 2 illustrates a deeper design philosophy be-hind SchemaLoop: multi-loop engineering. Unlike traditional black-box offline indexing, AnnolIndex decomposes the entire process into observable and intervene-able stages, forming an open feedback ecosystem. Specifically, the system incor-porates three feedback loops: Internal automatic verification loop; error-case analysis loop; External feedback loop. This paper only establishes the technical skeleton that supports the above multi-loop integration, we have implemented the internal automatic verification loop and provided standardized interfaces for human feedback and external query feedback (e.g., error-case logging, query log analysis modules). How to efficiently utilize these external signals for continuous optimization, and how to balance schema stability with evo-lution cost over the long term, are open directions for future exploration. V. S TRUCTURED QUERY ENGINE 
+
+The Structured Query engine defines the online retrieval function R. For a natural language query q, it performs a two-stage process: Semantic Parsing and Progressive SQL-extended Retrieval with an extensible EXTRACT operator. Figure 3 illustrates the process of Structured Query Engine. 
+
+A. Semantic Parsing to Structured Query 
+
+The Semantic Parsing Module translates a natural language user query q into a structured predicate P (q, S ∗) by leveraging the three-layer annotation schema induced by SchemaLoop (Section IV). Unlike flat field-matching approaches, the parser performs a hierarchical, layer-wise resolution that mirrors the structure of the annotation index: Fig. 3: The retrieval framework translates natural language queries into SQL-extended execution plan that first applies fast filtering on the annotation index, then invokes the E XTRACT operator for any missing attributes (e.g., legal conflict), and finally returns precise results. (1) Dataset-level resolution. The parser first checks whether q contains any terms that match the dataset-level schema. This step determines which logical database (or sub-corpus) the query pertains to. For example, a query mentioning “Wikipedia article” will be directed to the WikiText dataset. This layer filters out entire irrelevant collections at negligible cost. (2) Table-level resolution. Once the dataset is fixed, the parser identifies the entity category or topic group that the query targets. It matches query phrases against the table-level schema. For instance, “federal appeals” or “criminal law” will be mapped to the appropriate table in the LCR corpus. The output is a set of table-level constraints that restrict the search to one or more document groups, dramatically reducing the candidate space before any row-level filtering is applied. (3) document-level resolution. After narrowing to the relevant tables, the parser maps attribute-level conditions to the specific fields defined in the document-level schema. For each matched field, it extracts the corresponding operator and value (e.g., birth_year < 1985, case_name = ‘United States v. Martinez’). These predicates become schema-bound constraints Cschema = {(fi, op i, val i)} that can be directly evaluated against the structured annotation index. (4) Residual handling. Any query fragment that cannot be mapped to any of the three schema layers, typically a semantic condition requiring deep reasoning (e.g., “conflict with superior law”, “active status”), is treated as a candidate for the E XTRACT operator. The parser selects an appropriate extraction model (regex, lightweight SLM, or LLM) based on the complexity and ambiguity of the fragment, and generates an E XTRACT predicate. Multiple residuals are combined with AND by default. The final structured predicate is: 
+
+P (q, S ∗) = ^ Cschema ∧ ^ EXTRACT ϵ.
+
+This layered resolution process is fully transparent : each layer’s matching decisions and confidence scores can be logged and exposed to system administrators. When errors occur (e.g., a query is mis-routed to the wrong table), the failure case can be traced to a specific layer. 
+
+B. Retrieval with Extensible EXTRACT Function 
+
+The core function of the Structured Query Engine is the EXTRACT operator, which enables on-demand information extraction from raw document text during query execution. Unlike static index fields, E XTRACT can be backed by any user-specified extraction model, making the system extensible to arbitrary semantic predicates. Formally, an E XTRACT predicate is defined as: EXTRACT (field , model , params , doc ) → { TRUE , FALSE }
+
+where field is a virtual attribute not present in the schema, 
+
+model identifies a registered extractor (regex, SLM, or LLM), and params provide model-specific instructions (e.g., a pattern string or a natural-language question). 
+
+Execution strategy and optimizations. The engine evalu-ates the full predicate in a cost-aware manner: it first applies schema-bound filtering to sharply reduce the candidate set, then dynamically reorders E XTRACT predicates per document based on document-level properties (instance-optimized order-ing [6]), and short-circuits evaluation as soon as any predicate fails. For join queries, the engine rewrites joins into I N filters by first extracting qualifying IDs from one side, significantly reducing invocations on the other. All E XTRACT calls are executed in ascending cost order (regex → SLM → LLM) unless the instance-optimized or-dering overrides it for a specific document. The engine also enforces a per-query budget B that caps the total number of LLM invocations. By combining schema-level filtering, per-document adaptive ordering, early termination, and join-to-filter rewriting, the Structured Query Engine achieves high accuracy with minimal online LLM cost, making it suitable for large-scale, interactive analytic workloads. 
+
+C. Progressive SQL-based Reasoning 
+
+The Structured Query Engine executes the entire retrieval as a single SQL-like query execution plan with user-defined functions (UDFs) for extraction. Each E XTRACT call is imple-mented as a UDF within the SQL execution environment. This design decouples extraction logic from query planning, making the system extensible to any new extraction model without modifying the core retrieval engine. Consider a real query from the WikiText dataset: “Find all baseball players born before 1985 who are still active in MLB” . The corresponding SQL-extended execution plan is: 
+
+SELECT player_name FROM baseball_player WHERE birth_year < 1985 AND EXTRACT(’active_status’, ’GPT-4o’, ’Does the article indicate this person is currently an active MLB player?’, content) = ’True’; 
+
+The execution plan first uses the indexed fields 
+
+baseball_player to quickly filter the document collection, narrowing it down to the subset of baseball player biographies. Then, on the remaining candidate documents, using the birth_year field to checks whether it is less than 1985. Finally, for the very few documents that survive both previous filters, an LLM is invoked to judge current active status (high cost, but applied only to a heavily reduced candidate set). This progressive strategy effectively controls computational overhead while enabling precise retrieval of information expressed in free text. An example raw text snippet from the WikiText dataset, such as ‘‘Jacob deGrom (born June 19, 1988), is an American professional baseball pitcher for the New York Mets’’ ,would be excluded because the birth year 1988 does not satisfy the born before 1985 condition. In contrast, a veteran player like ‘‘Justin Verlander (born February 20, 1983)’’ would pass the birth-year filter and proceed to the LLM-based active status check. This example demonstrates the seamless collaboration between structured filtering and dynamic extraction: the 
+
+baseball_player and birth_year fields come from index induced by SchemaLoop, and active_status is judged by an LLM that comprehensively analyzes the full document context. 
+
+D. Attribute Reuse 
+
+The attribute values obtained by the Structured Query En-gine through the EXTRACT operator during query execution are not discarded after serving the current query; instead, they are persistently written back to the Annotation Index and trigger incremental updates to the annotation schema. This mechanism shifts the expensive attribute extraction cost from a per-query basis to a per-first-occurrence basis, enabling automatic reuse of extracted attributes and allowing the system to continuously reduce marginal cost as query volume grows. This design makes AnnoIndex a continuously evolving data system, rather than a static one-time built artifact. When an E XTRACT call successfully extracts an attribute value from a document, the system persists the result into the annotation index as a (doc id, f ield name, value ) triple. Newly attributes are initially stored as “virtual fields” in an extension area of the index without immediately altering the core schema; when a virtual field is referenced by E XTRACT 
+
+more than a threshold (e.g., 10 times), it is automatically promoted to a formal schema field, incorporated into the row-level or table-level schema, and fed back into the SchemaLoop pipeline for subsequent offline quality assessment and potential refinement. Once promoted, all future queries can access the attribute directly from the structured index without invoking any extraction, progressively reducing E XTRACT usage, low-ering query latency over time, and amortizing LLM costs to the first extraction. VI. E XPERIMENTS 
+
+TABLE I: Overall Performance (per-dataset F1, average F1)                                             
+
+> Method LCR F1 WikiText F1 SWDE F1 Avg F1
+> VectorDB+RAG 0.34 0.41 0.62 0.46 Graph RAG 0.48 0.59 0.71 0.60 ZenDB 0.55 0.79 0.84 0.67 Palimpsest 0.49 0.81 0.88 0.70 Lotus 0.46 0.89 0.95 0.73 QUEST 0.71 0.87 0.94 0.80 ClosedIE -0.26 -0.26 LLM(GPT-4o) 0.61 0.74 0.82 0.73
+> AnnoIndex (Eco) 0.74 0.88 0.95 0.83 AnnoIndex (Perf) 0.81 0.91 0.96 0.87
+
+We conduct comprehensive experiments on three real-world datasets to evaluate AnnoIndex against state-of-the-art baselines, focusing on four research questions: (1) overall retrieval accuracy and efficiency across different datasets; (2) the efficiency of the system, measured in terms of average LLM token consumption per query and the invocation counts of the E XTRACT operator; (3) the individual contribution of each core component; and (4) performance on complex queries involving joins and progressive reasoning. 
+
+A. Experimental Setup a) Datasets and Scale.: We use three real-world datasets covering different domains and document structures. 
+
+LCR [33]: we use 1,600 documents, averaging 6000+ tokens per document. This dataset tests the system’s ability to handle long, complex textual narratives and extract precise legal attributes. 
+
+WikiText [6]: The dataset contains 219 Wikipedia pages across ten domains (e.g., NBA players, companies, cities), averaging 1,200+ tokens per document. It features semi-structured text with rich attributes and relational information, ideal for testing join operations and schema induction over heterogeneous topics. 
+
+SWDE [34]: we sample 1,050 web pages, averaging 400+ tokens per document. It contains semi-structured web pages with templated layouts but unstructured text within fields. It challenges the system’s ability to handle noisy, web-scale data. 
+
+b) Ground Truth and Query Construction.: To establish reliable ground truth, we first use GPT-4o to extract candidate attributes from a small sample of documents per domain. Eight graduate students then manually verify and correct all attribute-value pairs and supplement missing attributes, producing a gold standard. For query construction, we generate 500 queries per dataset. The queries are stratified into four complexity levels with the following distribution, designed to reflect realistic analytical workloads: 1) Simple selections (20%, 100 queries) : single equality or range filter (e.g., “Find documents where birth year ¡ 1985” ). 2) Conjunctive/Disjunctive queries (30%, 150 queries) :2-4 filters combined with AND/OR (e.g., “Find players born after 1990 AND from the USA” ). 3) Join queries (30%, 150 queries) : two-way or three-way joins (e.g., “Find Canadian Turing Award winners after 2000 and their affiliated institutions” ). 4) Progressive reasoning queries (20%, 100 queries) :multi-step analytical questions requiring sequential SQL-like operations (e.g., “Find all legislative provi-sions in LCR that involve a conflict between superior and subordinate laws and are related to environmental protection” ). All queries are validated by graduate students to ensure they are realistic and unambiguous. 
+
+c) Baselines.: We compare AnnoIndex against six rep-resentative systems:  
+
+> •
+
+VectorDB + RAG [35]: A pure vector similarity search baseline using dense embeddings. It retrieves relevant text chunks but cannot execute structured queries. We implement this into a RAG pipelin. For the Embedding choice, we employ the OpenAI Embedding model [36], and the chunk size is 1024. For each document, we retrieve the top-5 most related chunks and concatenate them in their original order to form the context input for the LLM.  
+
+> •
+
+Graph RAG [18]: A knowledge graph-based method where entities/relations are first extracted by an LLM and stored in a graph database for Cypher querying.  
+
+> •
+
+ZenDB [5]: A recent LLM-powered system that extracts tuples via a semantic hierarchical tree and supports SQL-like queries.  
+
+> •
+
+Palimpsest [4]: A declarative system for AI-powered analytics over unstructured data.  
+
+> •
+
+QUEST [6]: A state-of-the-art cost-optimized system that employs a two-level index and instance-optimized query execution to minimize LLM token consumption during extraction. We re-implement its core optimizations (filter/join ordering, evidence-augmented retrieval) for a fair comparison.  
+
+> •
+
+Lotus [37]: A framework supporting semantic opera-tors (extraction, search, indexing) for building complex pipelines. Its default strategy feeds the entire document into an LLM for each extraction, resulting in high cost but often good accuracy.  
+
+> •
+
+ClosedIE [38]: A model fine-tuned on the (attribute, value) extraction task for a specific domain.  
+
+> •
+
+LLM (GPT-4o) [39]: A prompting baseline where the entire document context and query are fed to a LLM for direct answer generation. All the methods that utilize LLM employ GPT-4o with con-sistent parameters (temperature=0). We use Mistral-7B [40] as the small-scale extraction model. For methods that rely on embeddings, we use the same embedding model (OpenAI text-embedding-ada-002) [36]. 
+
+d) Evaluation Metrics.:  
+
+> •
+
+Accuracy: Precision, recall, and F1-score of the final structured answers against ground truth. A retrieved tuple is considered correct only if all its attribute values exactly match the gold standard.  
+
+> •
+
+Efficiency: Total LLM input+output tokens (proxy for monetary cost) and end-to-end query latency (seconds). We also report the average number of LLM tokens consumed per query. 
+
+B. Implementation Details of AnnoIndex 
+
+SchemaLoop Configuration. The dataset-level schema is manually predefined. Table-level and document-level schemas are generated using GPT-4o, with only one invocation per group. Iterative refinement runs for at most 5 rounds. In each round, deduplication is performed via synonym matching and embedding similarity (text-embedding-ada-002). During veri-fication, Mistral-7B is used for attribute extraction; extraction success rate (SR) and filtering efficiency (FE) are computed, with thresholds set to 0.6 and 0.3 respectively. 
+
+Structured Query Engine Configuration. The Structured Query Engine supports two operating modes: Economical mode and Performance mode. Economical mode adopts a progressive priority strategy as we mentioned in section V-B. For Performance mode, all E XTRACT operations are handled by GPT-4o without budget limits, used to measure the upper bound of accuracy. 
+
+C. Overall Performance Comparison 
+
+We evaluate the end-to-end retrieval accuracy of AnnoIn-dex against all baselines on the three datasets, with results summarized in Table I. Both operating modes of AnnoIndex consistently outperform or match all competing systems across every dataset, achieving the highest average F1-score of 0.87 
+
+(Performance mode), a 7 points gain over QUEST (0.80) and a 14 points gain over the GPT-4o LLM baseline (0.73). Below we analyze performance per dataset to highlight the strengths and limitations of each approach. 
+
+a) LCR (Legal Corpus).: AnnoIndex (Economical mode) achieves F1=0.74, and Performance mode further raises it to 0.81 , substantially outperforming QUEST (0.71) and the LLM baseline (0.61). The gap is most pronounced on queries requiring progressive legal reasoning, such as conflict-of-law analysis. Lotus, despite using full-document LLM scanning, yields only 0.46 F1, its lack of structured indexing causes the model to be overwhelmed by long, dense legal text, con-firming that indiscriminate full-context reasoning is unreliable in specialized domains. QUEST’s two-level index provides coarse filtering, and its simplistic join-to-filter conversion is insufficient for deep legal logic reasoning, resulting in noticeably lower recall than AnnoIndex. 
+
+b) WikiText (Heterogeneous Semi-Structured Data).: 
+
+AnnoIndex (Performance mode) achieves 0.91 F1, slightly surpassing QUEST (0.87) and Lotus (0.89). Although Lo-tus attains competitive accuracy, its performance is unsta-ble on queries involving cross-table joins or cross-document aggregation, with larger F1 variance. AnnoIndex benefits from SchemaLoop’s automatically induced table-level schema, which identifies the target table at query parsing time, thereby excluding irrelevant documents from subsequent field-level filtering and significantly improving both precision and recall. QUEST’s two-level index, while offering coarse filtering, lacks semantic grouping and tends to miss cross-topic associated documents in multi-table joins. 
+
+c) SWDE (Web Data).: Due to the template-like structure of web pages, attribute locations are relatively fixed, and all systems perform well: AnnoIndex, QUEST, and Lotus all exceed 0.94 F1. AnnoIndex reaches 0.96 F1, on par with Lotus and slightly higher than QUEST (0.94) and Graph RAG (0.71). In this semi-structured scenario, AnnoIndex’s schema induction precisely captures extraction rules for each field, achieving near-perfect precision and recall on simple attribute-filtering queries. Graph RAG, however, relies on pre-extracted entity-relation graphs and performs poorly on non-entity numeric attributes (e.g., prices, dates), thus lagging noticeably behind. 
+
+d) Accuracy Difference between Performance Mode and Economical Mode.: AnnoIndex’s Performance mode (F1=0.87) outperforms Economical mode (F1=0.83) by 4 per-centage points; this gain primarily stems from handling com-plex semantic predicates. Economical mode uses lightweight SLMs for most extractions and invokes LLMs only when necessary; Performance mode uses LLMs for all E XTRACT 
+
+operations that require deep semantic understanding, thereby achieving higher precision and recall on ambiguous or implic-itly conditioned queries. For simple equality or range filters, the two modes show nearly identical performance, confirming that the structured index alone guarantees high accuracy; for progressive reasoning and join queries, Performance mode’s advantage is more pronounced. 
+
+e) Summary of Baseline Performance.: VectorDB+RAG performs worst across all datasets (average F1=0.46); its vector similarity retrieval cannot enforce attribute-level constraints, leading to many irrelevant documents being recalled, and downstream LLMs struggle to extract accurate answers from noisy contexts. Graph RAG (average F1=0.60) performs rea-sonably on relation-exploration queries but fails on algebraic operations such as aggregation, comparison, and joins, as it must rely on LLM reasoning over subgraphs, which frequently introduces errors. ZenDB (0.67) and Palimpsest (0.70) improve performance in some scenarios through hierarchical extraction, but their schemas are fixed or manually designed, failing to adapt to heterogeneous corpora, so their performance drops significantly on LCR legal text. Lotus (0.73) and the LLM baseline (0.73) perform adequately on simple queries, but on long documents or multi-hop reasoning, the lack of effective index pruning causes the model to miss key information scat-tered across documents, resulting in low recall. QUEST (0.80) is the strongest baseline; its two-level index and instance-optimized execution plans indeed reduce extraction errors, but its limited retrieval capability and oversimplified join processing leave a gap compared to AnnoIndex on complex queries. 
+
+D. Efficiency Analysis and Attribute Reuse Evaluation 
+
+Beyond retrieval accuracy, we further evaluate the system efficiency of AnnoIndex along two complementary dimen-sions: 1) Amortized LLM Token Consumption per Query :defined as (total offline indexing tokens + total online query tokens) / total number of queries. This metric amortizes the one-time offline construction cost across all queries, providing a realistic picture of the per-query cost in sustained operation. 2) Invocation Counts of the E XTRACT Operator : we track the number of times E XTRACT operations actually trigger LLM calls across consecutive query batches. This directly measures the marginal cost reduction effect of the attribute reuse mechanism. All experiments are conducted on the fixed query sets (500 queries per dataset). Offline indexing costs are counted based on actual model invocations. 
+
+a) Amortized LLM Token Consumption.: Figure 4 reports the amortized average LLM token consumption per query for each method across the three datasets. For fair compar-ison, AnnoIndex evenly amortizes the total token cost of SchemaLoop offline induction and initial index population over the 500 queries. From Figure 4, we observe:  
+
+> •
+
+AnnoIndex achieves lowest amortized cost in both modes. Even after incorporating offline construction overhead, AnnoIndex (Performance mode) consumes 18.3K tokens per query across datasets, which is lower than QUEST. The Economical mode further reduces this to 15.7K. This counter-intuitive result stems from two Fig. 4: Amortized LLM Token Consumption by Dataset. factors: (i) the offline cost is extremely small (only 1.5 query equivalents) and is fully amortized over the 500-query workload; (ii) the structured index and attribute reuse dramatically reduce online LLM invocations during execution, more than compensating for the fixed upfront investment.  
+
+> •
+
+The gap widens as query volume grows. Since the offline cost is constant, increasing the number of queries from 500 to, say, 5,000 would push AnnoIndex’s amor-tized cost even closer to its purely online marginal cost (i.e., the cost without indexing overhead), making it increasingly more economical than QUEST and vastly superior to Lotus and the LLM baseline.  
+
+> •
+
+Economical mode offers the best cost efficiency. With an amortized cost of only 15K tokens, Economical mode achieves an F1 of 0.83 , which already surpasses most baselines. This makes it an attractive choice for budget-constrained deployments. 
+
+b) EXTRACT Invocation Counts Across Query Batches.: 
+
+Figure 5 shows the evolution of LLM-triggered E XTRACT 
+
+invocations over five consecutive batches of 100 queries each on the WikiText dataset (which contains the highest proportion of complex semantic predicates and cross-table joins). We report the counts for both AnnoIndex modes to isolate the effect of attribute reuse under different extraction backends. The results in Figure 5 yield several deep insights into the reuse mechanism: 
+
+Fig. 5: EXTRACT Invocations Across Query Batches.  
+
+> •
+
+The downward trend remains significant: Economical mode drops from 48 to 13 (a 73% reduction), and Per-formance mode drops from 72 to 15 (a 79% reduction), clearly demonstrating the effectiveness of the attribute reuse mechanism..  
+
+> •
+
+Performance mode consistently has higher absolute in-vocation counts than Economical mode, as it covers a broader range of semantic predicates. Nevertheless, both modes converge rapidly under the reuse loop.  
+
+> •
+
+Cumulative invocations over the five batches: Economical mode totals 128 calls; Performance mode totals 177 calls. Compared to a no-reuse scenario (approximately 300 calls), this still represents a substantial reduction. 
+
+Fig. 6: Ablation Experiment Results on WikiText. 
+
+E. Component Ablation and Optimization Effectiveness 
+
+To isolate the contribution of each component, we run ablation experiments on the WikiText dataset (which has the most heterogeneous schemas). We create three variants: (i) 
+
+w/o SchemaLoop , which uses a manually defined schema (derived from a domain expert’s annotation of 20 sample doc-uments); (ii) w/o Structured Query Engine , which replaces the Structured Query Engine with pure vector retrieval (using the same two-level index but performing only semantic chunk retrieval without structured filtering or join execution); (iii) 
+
+w/o Schema Optimization , which without schema verification and feedback. Results are summarized in Figure 6. Removing SchemaLoop (manual schema) drops F1 from 0.87 to 0.72 and increases LLM cost by 72% (from 26.8K to 51.8K tokens). Manual schemas often miss important attributes (low recall) or include irrelevant ones (high cost), confirming that automated induction is essential. Removing Structured Query Engine leads to a more severe F1 drop (to 0.64) because even with a perfect schema, the system cannot enforce attribute-level filters, joins, or progressive reasoning; it simply retrieves document chunks that are semantically similar to the query, resulting in many false positives. Interestingly, the cost of the vector-only variant (32.5K tokens) is only slightly higher than the Performance mode system, because the two-level index still filters many irrelevant documents; the accuracy loss is therefore due to the lack of structured execution, not token inefficiency. Removing schema Optimization (using Sc
+
+directly) increases cost (to 38.7K tokens) while not improving F1. The unpruned schema contains redundant attributes that trigger unnecessary LLM extraction calls and increase lantency. 
+
+F. Performance on Complex Queries and Progressive Reason-ing 
+
+We specifically evaluate the subset of queries that involve EXTRACT operators and multi-step reasoning (30 two-way join queries + 20 three-way progressive reasoning queries on WikiText; 25 legal conflict analysis queries on LCR). Figure 7 reports results on WikiText, where joinable tables (Player, Team, City, Owner) exist. AnnoIndex significantly outperforms all baselines, especially on three-way reasoning. For example, the query “List players who are older than 35, play for a team that has won more than 5 championships, and are from a city with population over 1 million” re-quires joining three tables and applying interleaved filters. AnnoIndex’s Structured Query Engine dynamically builds an operation Directed Acyclic Graph (DAG), extracting only necessary attributes at each step, achieving F1=0.86 with 58.2K tokens. QUEST, limited to left-deep join ordering, obtains F1=0.74 with 44.5K tokens. The LLM baseline fails completely (F1=0.35). 
+
+Fig. 7: Join Query Performance on WikiText. On LCR’s legal conflict analysis queries, AnnoIndex’s EX-TRACT operator shows unique advantages. A typical query requires determining whether a provision conflicts with a superior law, which cannot be fully covered by pre-annotated fields. The Structured Query Engine execution plan first uses the conflict_type index (from Hdetail ) to filter provisions with potential conflicts (reducing the candidate set from 1,600 to 120 documents), then applies a lightweight SLM to extract environmental keywords (further reducing to 35 documents), and finally invokes an LLM only on those 35 documents for conflict explanation extraction. Consequently, AnnoIndex achieves F1=0.79 with 38.7K tokens on this query class, while QUEST achieves only F1=0.61 (if LLM calls are restricted) or exceeds 200K tokens (if all LLM calls are enabled). 
+
+G. Summary 
+
+Experiments on three diverse datasets show that AnnoIndex achieves a new state-of-the-art average F1 of 0.87 while requiring only 18.3K LLM tokens, 11× fewer than the direct LLM baseline. Ablations confirm that SchemaLoop’s auto-matic three-layer schema induction and Structured Query En-gine’s progressive E XTRACT operator are both indispensable: removing either drops F1 by up to 0.23 and inflates LLM cost by over 70%. The system solves complex multi-hop joins and progressive reasoning queries, attaining 0.86 F1 on three-way join tasks. These results show that AnnoRe provides accurate answers across all query types while using far fewer LLM resources, making it a practical and cost-effective solution for querying unstructured document collections at scale. VII. C ONCLUSION 
+
+We presented AnnoIndex, a system that converts unstruc-tured documents into queryable structured resources via offline schema induction and progressive online execution. On three real-world datasets, it achieves an average F1 of 0.87 (perfor-mance mode), outperforming strong baselines, while its amor-tized token cost remains lower than that of online-optimized competitors. Ablations confirm the indispensable role of each component, and the attribute reuse mechanism yields a clear learning curve: frequent queries become progressively cheaper. AnnoIndex provides a practical, scalable, and cost-effective foundation for precise analytical workloads over text, and its closed-loop design opens pathways for continuous system evolution through user feedback and query-log analysis. REFERENCES [1] T. King, “80 Percent of Your Data Will Be Unstructured in Five Years,” Solutions Review, accessed: 2026-01-22. [Online]. Available: https://solutionsreview.com/data-management/80-percent-of-your-data-will-be-unstructured-in-five-years/ [2] T. Lin, “Simplifying data integration: Slm-driven systems for unified semantic queries across heterogeneous databases,” in 2025 IEEE 41st International Conference on Data Engineering (ICDE) , May 2025, pp. 4690–4693. [3] T. Lin, Y. Luo, H. Zhang, J. Zhang, C. Liu, K. Wu, and N. Tang, “MEBench: Benchmarking large language models for cross-document multi-entity question answering,” in Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing , C. Christodoulopoulos, T. Chakraborty, C. Rose, and V. Peng, Eds. Suzhou, China: Association for Computational Linguistics, Nov. 2025, pp. 1481–1494. [Online]. Available: https://aclanthology.org/2025.emnlp-main.77/ [4] C. Liu, M. Russo, M. Cafarella, L. Cao, P. B. Chen, Z. Chen, M. Franklin, T. Kraska, S. Madden, R. Shahout et al. , “Palimpzest: Optimizing ai-powered analytics with declarative query processing,” in Proceedings of the Conference on Innovative Database Research (CIDR) , 2025, p. 2. [5] Y. Lin, M. Hulsebos, R. Ma, S. Shankar, S. Zeighami, A. G. Parameswaran, and E. Wu, “Querying templatized document collections with large language models,” in 2025 IEEE 41st International Confer-ence on Data Engineering (ICDE) , 2025, pp. 2422–2435. [6] Z. Sun, C. Chai, Q. Deng, K. Jin, X. Guo, H. Han, Y. Yuan, G. Wang, and L. Cao, “Quest: Query optimization in unstructured document analysis,” Proc. VLDB Endow. , vol. 18, no. 11, p. 4560–4573, Jul. 2025. [Online]. Available: https://doi.org/10.14778/3749646.3749713 [7] T. Lin, Z. Zhang, Y. Luo, and N. Tang, “Monte carlo tree search for table-to-multimodal report generation,” 2026. [Online]. Available: https://arxiv.org/abs/2608.04071 [8] T. Lin, Y. Luo, and N. Tang, “Annoretrieve: Efficient structured retrieval for unstructured document analysis,” 2026. [Online]. Available: https://arxiv.org/abs/2604.02690 [9] W. Fan, Y. Ding, L. Ning, S. Wang, H. Li, D. Yin, T. S. Chua, and Q. Li, “A survey on rag meeting llms: Towards retrieval-augmented large language models,” 2024. [10] J. Liu, D. Zhu, Z. Bai, Y. He, H. Liao, H. Que, Z. Wang, C. Zhang, G. Zhang, J. Zhang, Y. Zhang, Z. Chen, H. Guo, S. Li, Z. Liu, Y. Shan, Y. Song, J. Tian, W. Wu, Z. Zhou, R. Zhu, J. Feng, Y. Gao, S. He, Z. Li, T. Liu, F. Meng, W. Su, Y. Tan, Z. Wang, J. Yang, W. Ye, B. Zheng, W. Zhou, W. Huang, S. Li, and Z. Zhang, “A comprehensive survey on long context language modeling,” 2025. [Online]. Available: https://arxiv.org/abs/2503.17407 [11] T. Lin, Y. Zhu, Z. Zhang, Y. Luo, and N. Tang, “Docsage: An information structuring agent for multi-doc multi-entity question answering,” 2026. [Online]. Available: https://arxiv.org/abs/2603.11798 [12] M. Wang, Y. Wang, and F. Wu, “Numerical constraint-aware dense retrieval with two-phase contrastive learning,” Big Data Mining and Analytics , vol. 9, no. 2, pp. 341–359, 2026. [13] P. Lewis, E. Perez, A. Piktus, F. Petroni, V. Karpukhin, N. Goyal, H. K¨ uttler, M. Lewis, W.-t. Yih, T. Rockt¨ aschel et al. , “Retrieval-augmented generation for knowledge-intensive nlp tasks,” Advances in Neural Information Processing Systems , vol. 33, pp. 9459–9474, 2020. [14] M. Wang, L. Chen, F. Cheng, S. Liao, X. Zhang, B. Wu, H. Yu, N. Xu, L. Zhang, R. Luo, Y. Li, M. Yang, F. Huang, and Y. Li, “Leave no document behind: Benchmarking long-context LLMs with extended multi-doc QA,” in Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing , Y. Al-Onaizan, M. Bansal, and Y.-N. Chen, Eds. Miami, Florida, USA: Association for Computational Linguistics, Nov. 2024, pp. 5627–5646. [Online]. Available: https://aclanthology.org/2024.emnlp-main.322/ [15] T. Lin, “Structured retrieval-augmented generation for multi-entity question answering over heterogeneous sources,” in 2025 IEEE 41st International Conference on Data Engineering Workshops (ICDEW) ,2025, pp. 253–258. [16] C.-M. Chan, C. Xu, R. Yuan, H. Luo, W. Xue, Y.-T. Guo, and J. Fu, “Rq-rag: Learning to refine queries for retrieval augmented generation,” ArXiv , vol. abs/2404.00610, 2024. [Online]. Available: https://api.semanticscholar.org/CorpusID:268819582 [17] Z. Shao, Y. Gong, Y. Shen, M. Huang, N. Duan, and W. Chen, “Enhancing retrieval-augmented large language models with iterative retrieval-generation synergy,” 2023. [Online]. Available: https://arxiv.org/abs/2305.15294 [18] D. Edge, H. Trinh, N. Cheng, J. Bradley, A. Chao, A. Mody, S. Truitt, and J. Larson, “From local to global: A graph rag approach to query-focused summarization,” arXiv preprint arXiv:2404.16130 , 2024. [19] T. Lin, “Lightkgg: Simple and efficient knowledge graph generation from textual data,” 2025. [Online]. Available: https://arxiv.org/abs/2510.23341 [20] T. Lin, Y. Zhu, Y. Luo, and N. Tang, “Srag: Structured retrieval-augmented generation for multi-entity question answering over wikipedia graph,” CoRR , vol. abs/2503.01346, March 2025. [Online]. Available: https://doi.org/10.48550/arXiv.2503.01346 [21] The Deepdoctection Authors, “deepdoctection,” 2023, accessed: 2026-01-22. [Online]. Available: https://github.com/deepdoctection/deepdoctection [22] S. Shankar, T. Chambers, T. Shah, A. G. Parameswaran, and E. Wu, “Docetl: Agentic query rewriting and evaluation for complex document processing,” arXiv preprint arXiv:2410.12189 , 2024. [23] Unstructured Technologies, Inc., “Unstructured,” 2024, accessed: 2026-01-22. [Online]. Available: https://github.com/Unstructured-IO/unstructured [24] Y. Gao, Y. Xiong, X. Gao, K. Jia, J. Pan, Y. Bi, Y. Dai, J. Sun, M. Wang, and H. Wang, “Retrieval-augmented generation for large language models: A survey,” 2024. [Online]. Available: https://arxiv.org/abs/2312.10997 [25] C. Chai, J. Li, Y. Deng, Y. Zhong, Y. Yuan, G. Wang, and L. Cao, “Doctopus: Budget-aware structural table extraction from unstructured documents,” Proceedings of the VLDB Endowment , vol. 18, no. 11, pp. 3695–3707, 2025. [26] Z. Li, Y. Zhong, C. Chai, Z. Sun, Y. Deng, Y. Yuan, G. Wang, and L. Cao, “Docdb: A database for unstructured document analysis,” 
+
+Proceedings of the VLDB Endowment , vol. 18, no. 12, pp. 5387–5390, 2025. [27] M. Urban and C. Binnig, “Eleet: Efficient learned query execution over text and tables,” Proceedings of the VLDB Endowment , vol. 17, no. 13, pp. 4867–4880, 2024. [28] J. Wang, Y. Li, J. Wu, S. Xu, and G. Li, “Unify: A system for unstructured data analytics,” Proceedings of the VLDB Endowment ,vol. 18, no. 12, pp. 5287–5290, 2025. [29] L. Patel, P. Kraft, C. Guestrin, and M. Zaharia, “Acorn: Performant and predicate-agnostic search over vector embeddings and structured data,” 
+
+Proc. ACM Manag. Data , vol. 2, no. 3, May 2024. [Online]. Available: https://doi.org/10.1145/3654923 [30] J. Yang, S. Mo, J. Shi, Z. Yu, K. Shi, X. Ding, and G. Cong, “Arcade: A real-time data system for hybrid and continuous query processing across diverse data modalities,” arXiv preprint arXiv:2509.19757 , 2025. [31] J. Bai, W. Fan, Q. Hu, Q. Zong, C. Li, H. T. Tsang, H. Luo, Y. Yim, H. Huang, X. Zhou et al. , “Autoschemakg: Autonomous knowledge graph construction through dynamic schema induction from web-scale corpora,” arXiv preprint arXiv:2505.23628 , 2025. [32] M. Sadia, Z. Yang, Y. Xiao, A. Chen, and A. Roy Chowdhury, “SQUiD: Synthesizing relational databases from unstructured text,” in Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing , C. Christodoulopoulos, T. Chakraborty, C. Rose, and V. Peng, Eds. Suzhou, China: Association for Computational Linguistics, Nov. 2025, pp. 31 987–32 012. [Online]. Available: https://aclanthology.org/2025.emnlp-main.1629/ [33] F. Galgani and A. Hoffmann, “Lexa: Towards automatic legal citation classification,” in AI 2010: Advances in Artificial Intelligence , J. Li, Ed. Berlin, Heidelberg: Springer Berlin Heidelberg, 2011, pp. 445–454. [34] Q. Hao, R. Cai, Y. Pang, and L. Zhang, “From one tree to a forest: a unified solution for structured web data extraction,” in Proceedings of the 34th International ACM SIGIR Conference on Research and Development in Information Retrieval , ser. SIGIR ’11. New York, NY, USA: Association for Computing Machinery, 2011, p. 775–784. [Online]. Available: https://doi.org/10.1145/2009916.2010020 [35] Kagi Search, “Vectordb: A minimal python package for storing and retrieving text using chunking, embeddings, and vector search,” https://github.com/kagisearch/vectordb, accessed: 2026-04-18. [36] OpenAI, “Openai embedding model,” https://huggingface.co/Xenova/text-embedding-ada-002, accessed [Date of access]. [37] L. Patel, S. Jha, C. Guestrin, and M. Zaharia, “Lotus: Enabling semantic queries with llms over tables of unstructured and structured data,” arXiv preprint arXiv:2407.11418 , 2024. [38] P. He, X. Liu, J. Gao, and W. Chen, “Deberta: Decoding-enhanced bert with disentangled attention,” in International Conference on Learning Representations , 2021. [Online]. Available: https://openreview.net/forum?id=XPZIaotutsD [39] J. Achiam, S. Adler, S. Agarwal, L. Ahmad, I. Akkaya, F. L. Aleman, D. Almeida, J. Altenschmidt, S. Altman, S. Anadkat et al. , “Gpt-4 technical report,” arXiv preprint arXiv:2303.08774 , 2023. [40] A. Q. Jiang, A. Sablayrolles, A. Mensch, C. Bamford, D. S. Chaplot, D. d. l. Casas, F. Bressand, G. Lengyel, G. Lample, L. Saulnier et al. ,“Mistral 7b,” arXiv preprint arXiv:2310.06825 , 2023.

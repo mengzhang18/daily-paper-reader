@@ -1,0 +1,828 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-09-01T02:04:35.679574+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 27,
+    "deep_cap": 6,
+    "deep_selected": 10,
+    "quick_candidates": 35,
+    "quick_skim_target": 11,
+    "quick_selected": 11
+  },
+  "deep_dive": [
+    {
+      "id": "2608.06677v1",
+      "source": "arxiv",
+      "title": "From Interpretation to Compilation: A Compilation-Based Execution Engine for Semantic Operator Systems",
+      "abstract": "Semantic operators extend data processing with natural-language predicates. Existing semantic operator systems commonly execute these operators through interpretation-based execution: for every data item, an LLM interprets the operator predicate and directly produces the corresponding result. Although expressive, this design places expensive model invocations inside the data-processing loop, causing latency and monetary cost to scale with input cardinality.   We present SemBaker, a compilation-based execution engine for semantic operator systems. SemBaker acts as an external plugin rather than replacing a backend's native execution. For selected semantic filters, maps, and joins, it invokes an LLM once to generate a deterministic Python function and executes that function locally without per-item LLM calls. A cost-based optimizer routes each operator to native or compiled execution, while compilation overlaps pipeline execution. SemBaker supports Palimpzest, LOTUS, Nirvana, and DocETL through thin adapters. Across three 200-query QA workloads, SemBaker achieves average speedups of 4.8 to 6.3 times and average cost reductions of 5.4 to 10.7 times, with competitive processing quality.",
+      "authors": [
+        "Wenkai Dong",
+        "Yifan Wang"
+      ],
+      "primary_category": "cs.DB",
+      "categories": [
+        "cs.DB"
+      ],
+      "published": "2026-08-07T00:51:01+00:00",
+      "link": "https://arxiv.org/pdf/2608.06677v1",
+      "tags": [
+        "keyword:sdl",
+        "query:sdl"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "Compilation-based execution engine for semantic operator systems",
+      "llm_evidence_cn": "面向语义算子系统的编译执行引擎",
+      "llm_evidence": "面向语义算子系统的编译执行引擎",
+      "canonical_evidence": "面向语义算子系统的编译执行引擎",
+      "llm_tldr_en": "SemBaker is a compilation-based execution engine for semantic operator systems that compiles selected LLM-defined filters, maps, and joins into deterministic code, reducing per-item inference costs and latency.",
+      "llm_tldr_cn": "语义算子用自然语言谓词扩展数据处理，但现有系统多以解释式执行，即对每条数据调用LLM解释谓词，导致延迟和费用随输入规模线性上升。本文提出SemBaker，作为插件式编译执行引擎，不为后端原生执行，而是对选定的语义过滤、映射和连接仅调用一次LLM生成确定性代码。该方法在不牺牲表达力的前提下大幅减少模型调用次数，为语义算子系统带来接近原生的执行效率。",
+      "llm_tldr": "语义算子用自然语言谓词扩展数据处理，但现有系统多以解释式执行，即对每条数据调用LLM解释谓词，导致延迟和费用随输入规模线性上升。本文提出SemBaker，作为插件式编译执行引擎，不为后端原生执行，而是对选定的语义过滤、映射和连接仅调用一次LLM生成确定性代码。该方法在不牺牲表达力的前提下大幅减少模型调用次数，为语义算子系统带来接近原生的执行效率。",
+      "llm_tags": [
+        "query:sdl"
+      ],
+      "matched_query_tag": "query:sdl",
+      "matched_query_text": "semantic operators in database systems",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.20630v1",
+      "source": "arxiv",
+      "title": "SAGE: A Unified Algebra and Self-Adaptive Execution for AI Functions in SQL",
+      "abstract": "SQL systems increasingly expose AI functions for tasks such as classification, extraction, filtering, ranking, retrieval, joining, and summarization. Despite their diverse APIs, these functions play only three relational roles: transforming individual rows, aggregating groups, or generating relationships between row pairs. We present SAGE (Self-Adaptive Generative Execution), a unified logical and physical framework that captures these roles with three typed primitives, AI_SCALAR, AI_AGG, and AI_JOIN, and composes them naturally with standard relational operators. All primitives share a confidence-gated execution interface while supporting physical strategies tailored to their relational shape. The main challenge is AI_JOIN, where SAGE analyzes the predicate, decomposes compound conditions when possible, and uses a recipe card together with a small label-free probe to select among complete execution strategies. Across a broad audit of public AI operators and evaluations spanning scalar, aggregate, and join workloads, this formulation covers common AI functionality while consistently improving execution quality and efficiency. SAGE achieves the strongest overall SemBench performance and, on a representative factorable join, reduces pairwise model calls by more than two orders of magnitude, yielding a 358-fold measured cost reduction.",
+      "authors": [
+        "Xiangqi Wang",
+        "Nhan H. Pham",
+        "Oktie Hassanzadeh",
+        "Dharmashankar Subramanian",
+        "Xiangliang Zhang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-08-21T00:12:41+00:00",
+      "link": "https://arxiv.org/pdf/2608.20630v1",
+      "tags": [
+        "keyword:sdl",
+        "query:sdl"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "Unified algebra and self-adaptive execution for semantic AI operators in SQL",
+      "llm_evidence_cn": "SQL中语义AI函数的统一代数与自适应执行",
+      "llm_evidence": "SQL中语义AI函数的统一代数与自适应执行",
+      "canonical_evidence": "SQL中语义AI函数的统一代数与自适应执行",
+      "llm_tldr_en": "SAGE defines three typed AI operators (AI_SCALAR, AI_AGG, AI_JOIN) with confidence-gated execution, integrating semantic functions into relational query processing.",
+      "llm_tldr_cn": "SQL系统越来越多地暴露AI函数用于分类、过滤、排序、检索、连接和摘要，但这些函数仅扮演三种关系角色。SAGE提出统一逻辑与物理框架，用AI_SCALAR、AI_AGG、AI_JOIN三种类型化原语捕获这些角色，并与标准关系算子自然组合。所有原语共享置信门控执行接口，并针对各自关系形状选择物理策略，重点处理AI_JOIN的挑战。这为语义算子融入数据库引擎提供了系统化方案。",
+      "llm_tldr": "SQL系统越来越多地暴露AI函数用于分类、过滤、排序、检索、连接和摘要，但这些函数仅扮演三种关系角色。SAGE提出统一逻辑与物理框架，用AI_SCALAR、AI_AGG、AI_JOIN三种类型化原语捕获这些角色，并与标准关系算子自然组合。所有原语共享置信门控执行接口，并针对各自关系形状选择物理策略，重点处理AI_JOIN的挑战。这为语义算子融入数据库引擎提供了系统化方案。",
+      "llm_tags": [
+        "query:sdl"
+      ],
+      "matched_query_tag": "query:sdl",
+      "matched_query_text": "semantic operators in database systems",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.06331v1",
+      "source": "arxiv",
+      "title": "Tytan: Interactive Neurosymbolic Construction of Analytic Semantic Schemas from Relational Data",
+      "abstract": "From natural-language query interfaces to automated report generation, data analysis tools need a description of the data: the real-world entities it contains, which columns function as measures or identifiers, and how tables connect into units of analysis. Today, this semantic layer is usually written by hand. This is a knowledge-acquisition bottleneck that limits the scalability of analytic systems, keeps non-technical users dependent on experts, and is itself error-prone. We present TYTAN, a system for automatically constructing an analytic semantic schema from a relational database and, when available, a short user-provided description. TYTAN combines symbolic analysis of the database with LLM-based semantic inference for entity proposal, role assignment, and naming. When the evidence leaves a decision ambiguous, TYTAN asks the user a targeted natural-language question. We evaluate TYTAN on eight databases spanning real-world and benchmark domains along the three axes that define a schema's functional utility: (i) coverage, are all important entities and features captured?; (ii) retrieval correctness, do the schema's instructions actually reach the data; and (iii) characterization accuracy, are semantic types correct? Across the seven reference domains, TYTAN reaches every entity, attribute, and aggregable feature of the expert-corrected reference schemas (100% coverage). Additionally, 100% of its retrieval instructions execute correctly (1,678 of 1,678 self-generated claims), and semantic roles agree with the reference on 92-100% of matched attributes. Checking the underlying data showed the small disagreement is in the reference, not in TYTAN. On a held-out blind test (a live, ten-table database with no declared keys), TYTAN recovers the full entity structure with verified keys and satisfies 100% of the satisfiable expectations of five independent blind annotators.",
+      "authors": [
+        "Donna Hooshmand",
+        "Shubham Shahi",
+        "Cameron Barrie",
+        "Abhratanu Dutta",
+        "Marko Sterbentz",
+        "Harper Pack",
+        "Kristian J. Hammond"
+      ],
+      "primary_category": "cs.DB",
+      "categories": [
+        "cs.DB",
+        "cs.AI"
+      ],
+      "published": "2026-08-06T17:40:26+00:00",
+      "link": "https://arxiv.org/pdf/2608.06331v1",
+      "tags": [
+        "keyword:sdl",
+        "query:sdl"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Automatically constructs analytic semantic schemas from relational data with LLM inference for semantic query interfaces.",
+      "llm_evidence_cn": "用LLM语义推断从关系数据自动构造分析语义模式，支撑语义查询接口。",
+      "llm_evidence": "用LLM语义推断从关系数据自动构造分析语义模式，支撑语义查询接口。",
+      "canonical_evidence": "用LLM语义推断从关系数据自动构造分析语义模式，支撑语义查询接口。",
+      "llm_tldr_en": "TYTAN combines symbolic database analysis with LLM-based semantic inference to automatically construct analytic semantic schemas, removing the knowledge-acquisition bottleneck for natural-language query interfaces.",
+      "llm_tldr_cn": "数据查询与报表工具依赖手工编写语义层，这一知识获取瓶颈限制了系统扩展并引入错误。TYTAN自动从关系数据库（可辅以简短用户描述）构建分析语义模式，融合对数据库的符号分析与LLM语义推断，识别实体、度量列及表间关联。实验表明自动生成的模式能有效支撑自然语言查询接口，降低专家依赖并提升可靠性。",
+      "llm_tldr": "数据查询与报表工具依赖手工编写语义层，这一知识获取瓶颈限制了系统扩展并引入错误。TYTAN自动从关系数据库（可辅以简短用户描述）构建分析语义模式，融合对数据库的符号分析与LLM语义推断，识别实体、度量列及表间关联。实验表明自动生成的模式能有效支撑自然语言查询接口，降低专家依赖并提升可靠性。",
+      "llm_tags": [
+        "query:sdl"
+      ],
+      "matched_query_tag": "query:sdl",
+      "matched_query_text": "semantic query processing techniques",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.09260v1",
+      "source": "arxiv",
+      "title": "SafeQL: Search-based Refinement for Safe and Efficient LLM-based Text-to-SQL",
+      "abstract": "Large language models (LLMs) have advanced Text-to-SQL by enabling natural language interfaces to databases without task-specific fine-tuning. However, existing LLM-based systems remain unreliable, often generating SQL queries that are invalid under the database schema, referencing non-existent tables, attributes, functions, or values. Such errors persist because interactions with the database management system (DBMS) are typically limited to error messages, leaving it in a largely passive role during query refinement. This paper proposes SafeQL, \\textit{a search-based refinement paradigm that redefines the role of the DBMS as an active guide in the refinement process}. Instead of regenerating entire queries after execution failure, SafeQL interprets DBMS feedback to incrementally repair only the erroneous components. Each refinement step is formulated as a guided search within a \\textit{safe query space}, where candidate queries are progressively validated through DBMS execution, thereby converging to an executable query and preventing repeated regeneration of errors. Experiments on the Bird and Spider benchmarks show that SafeQL significantly improves execution accuracy and efficiency compared to regeneration-based methods.",
+      "authors": [
+        "Geonho Lee",
+        "Min-Soo Kim"
+      ],
+      "primary_category": "cs.DB",
+      "categories": [
+        "cs.DB",
+        "cs.AI"
+      ],
+      "published": "2026-08-10T08:16:17+00:00",
+      "link": "https://arxiv.org/pdf/2608.09260v1",
+      "tags": [
+        "keyword:sdl",
+        "query:sdl"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "SafeQL uses DBMS feedback to guide LLM Text-to-SQL refinement, directly improving semantic query processing",
+      "llm_evidence_cn": "SafeQL利用数据库反馈引导LLM文本到SQL细化，直接改进语义查询处理",
+      "llm_evidence": "SafeQL利用数据库反馈引导LLM文本到SQL细化，直接改进语义查询处理",
+      "canonical_evidence": "SafeQL利用数据库反馈引导LLM文本到SQL细化，直接改进语义查询处理",
+      "llm_tldr_en": "SafeQL makes the DBMS an active guide during LLM Text-to-SQL refinement via search-based query adjustments, improving validity and efficiency over full regeneration.",
+      "llm_tldr_cn": "现有LLM文本转SQL系统在生成SQL时常出现无效或错误查询，且与数据库交互仅限于错误信息，使DBMS在被动的修正过程中作用有限。SafeQL提出搜索式细化范式，将DBMS作为主动引导，在执行失败后对查询进行局部搜索修正而非整体重生成。实验表明该方法能够更高效地生成符合模式的有效SQL。该工作重新定义了LLM与数据库系统之间的协作方式，为AI辅助查询生成提供了更可靠的路径。",
+      "llm_tldr": "现有LLM文本转SQL系统在生成SQL时常出现无效或错误查询，且与数据库交互仅限于错误信息，使DBMS在被动的修正过程中作用有限。SafeQL提出搜索式细化范式，将DBMS作为主动引导，在执行失败后对查询进行局部搜索修正而非整体重生成。实验表明该方法能够更高效地生成符合模式的有效SQL。该工作重新定义了LLM与数据库系统之间的协作方式，为AI辅助查询生成提供了更可靠的路径。",
+      "llm_tags": [
+        "query:sdl"
+      ],
+      "matched_query_tag": "query:sdl",
+      "matched_query_text": "LLM-powered database systems for semantic query processing",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.09532v1",
+      "source": "arxiv",
+      "title": "Carnot: Interpretable, Interactive, and Optimized Execution of Deep Research Queries",
+      "abstract": "Enterprises increasingly seek to query data lakes using natural language via AI-driven tools like semantic operators or deep research agents. However, the latter operates as an opaque black box, hiding its intermediate reasoning and data retrieval steps, and failing to expose controls for managing API costs and execution latency. Meanwhile, the former can be prohibitively expensive for enterprise-scale data lakes. Consequently, analysts using these systems lack the agency to intercept hallucinated premises, verify intermediate results, or correct the system's trajectory. We present Carnot, an interactive execution engine for AI-driven analytics. Carnot compiles natural language requests into physical execution graphs and surfaces them through an interactive notebook interface. Rather than waiting blindly for a final output, users can critique the plan, incrementally execute operators, inspect intermediate data, or directly edit the underlying code or semantic operator instructions. Carnot's query optimizer will optimize the query with respect to cost or latency constraints provided by the user. Our demo will showcase how Carnot helps users achieve efficient and verifiable insights on workloads motivated by real enterprise use cases.",
+      "authors": [
+        "Matthew Russo",
+        "Yash Agarwal",
+        "Tianyu Li",
+        "Zhuohan Gu",
+        "Michael Cafarella",
+        "Omar Khattab",
+        "Tim Kraska",
+        "Samuel Madden"
+      ],
+      "primary_category": "cs.DB",
+      "categories": [
+        "cs.DB",
+        "cs.AI"
+      ],
+      "published": "2026-08-10T12:32:39+00:00",
+      "link": "https://arxiv.org/pdf/2608.09532v1",
+      "tags": [
+        "keyword:sdl",
+        "query:sdl"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "explicitly targets semantic operators and compiles natural language requests into physical execution graphs",
+      "llm_evidence_cn": "明确面向语义算子，将自然语言请求编译为物理执行图",
+      "llm_evidence": "明确面向语义算子，将自然语言请求编译为物理执行图",
+      "canonical_evidence": "明确面向语义算子，将自然语言请求编译为物理执行图",
+      "llm_tldr_en": "Carnot is an interactive execution engine for AI-driven analytics that compiles natural language queries into interpretable physical execution graphs, exposing API costs and latency controls while supporting semantic operators over enterprise data lakes.",
+      "llm_tldr_cn": "企业使用自然语言查询数据湖时，语义算子或深度研究代理往往是不透明黑盒，代价高且难以干预。Carnot将自然语言请求编译为物理执行图，并为分析师提供可解释的中间步骤、成本与延迟控制，使其能够拦截幻觉前提、验证中间结果并修正执行轨迹。该系统融合了语义算子的表达力与交互式执行引擎的可控性。Carnot为LLM驱动的数据分析提供了更透明和可优化的执行方案。",
+      "llm_tldr": "企业使用自然语言查询数据湖时，语义算子或深度研究代理往往是不透明黑盒，代价高且难以干预。Carnot将自然语言请求编译为物理执行图，并为分析师提供可解释的中间步骤、成本与延迟控制，使其能够拦截幻觉前提、验证中间结果并修正执行轨迹。该系统融合了语义算子的表达力与交互式执行引擎的可控性。Carnot为LLM驱动的数据分析提供了更透明和可优化的执行方案。",
+      "llm_tags": [
+        "query:sdl"
+      ],
+      "matched_query_tag": "query:sdl",
+      "matched_query_text": "semantic operators in database systems",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.11889v1",
+      "source": "arxiv",
+      "title": "DexterSQL: Deep Schema Exploration and Rule-based Correction for Text-to-SQL Generation",
+      "abstract": "Prompting-based (\\textit{i}.\\textit{e}., non-fine-tuning) Text-to-SQL methods, where underlying large language model parameters are not changed for the task, face three problems: (\\textit{i})~relying on coarse-grained schema information that may not reveal the fine-grained relationships needed to distinguish ambiguous columns, (\\textit{ii})~not capturing recurring SQL-generation failures, and (\\textit{iii})~suffering from omission, hallucination, or misplacement of conditions in complex questions.   This paper develops \\textsc{DexterSQL}, a prompting/non-fine-tuning-based Text-to-SQL system that improves SQL generation with three novel components: (\\textit{i})~\\emph{deep schema explorator} that identifies ambiguous columns, analyzes their individual and joint data distributions to uncover their relationships and the distinct role of each, (\\textit{ii})~\\emph{database-agnostic rule creator} that mines mismatches between generated and gold SQL only on the training database and converts them into database-agnostic corrective rules that capture recurring LLM failure patterns; and (\\textit{iii})~\\emph{multi-path SQL generation} that introduces a dependency-tree-based intermediate representation that uses the question's sentence structure to guide its decomposition into an SQL skeleton for final SQL generation.   \\textsc{DexterSQL} achieves a higher accuracy compared to the state-of-the-art using both open-source/weight and closed-source/weight models. Particularly, \\textsc{DexterSQL}'s shows a high improvement of at least 2.7\\% using an open-weight model (GPT-OSS-120B) on BIRD-Dev, with total accuracy 67.6\\%. \\textsc{DexterSQL} also shows better improvement of at least 0.9\\% using closed-weight models, with total accuracy 71.6\\% and 72.2\\% on BIRD-Dev with GPT-4o and GPT-5.2.",
+      "authors": [
+        "Anik Pramanik",
+        "Murat Kantarcioglu",
+        "Vincent Oria",
+        "Shantanu Sharma"
+      ],
+      "primary_category": "cs.DB",
+      "categories": [
+        "cs.DB",
+        "cs.AI",
+        "cs.CL",
+        "cs.IR"
+      ],
+      "published": "2026-08-12T10:17:08+00:00",
+      "link": "https://arxiv.org/pdf/2608.11889v1",
+      "tags": [
+        "keyword:sdl",
+        "query:sdl"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Deep schema exploration and rule-based correction improve Text-to-SQL semantic query generation.",
+      "llm_evidence_cn": "深度模式探索与规则修正改进Text-to-SQL语义查询生成。",
+      "llm_evidence": "深度模式探索与规则修正改进Text-to-SQL语义查询生成。",
+      "canonical_evidence": "深度模式探索与规则修正改进Text-to-SQL语义查询生成。",
+      "llm_tldr_en": "DexterSQL uses deep schema exploration, a failure history, and rule-based correction to improve prompting-based Text-to-SQL generation by disambiguating columns and fixing condition errors.",
+      "llm_tldr_cn": "基于提示而非微调的Text-to-SQL方法面临模式信息粗糙、无法捕捉反复出现错误以及条件遗漏/幻觉等问题。DexterSQL通过三个组件改进生成：深度模式探索器识别歧义列并分析它们，构建失败历史记录常见生成错误，规则修正模块处理复杂问题中的条件缺失或错放。该系统在不修改LLM参数的情况下显著提升了SQL生成质量。",
+      "llm_tldr": "基于提示而非微调的Text-to-SQL方法面临模式信息粗糙、无法捕捉反复出现错误以及条件遗漏/幻觉等问题。DexterSQL通过三个组件改进生成：深度模式探索器识别歧义列并分析它们，构建失败历史记录常见生成错误，规则修正模块处理复杂问题中的条件缺失或错放。该系统在不修改LLM参数的情况下显著提升了SQL生成质量。",
+      "llm_tags": [
+        "query:sdl"
+      ],
+      "matched_query_tag": "query:sdl",
+      "matched_query_text": "semantic query processing techniques",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.13384v1",
+      "source": "arxiv",
+      "title": "Structure then Query: Enabling Precise Analytical Queries over Unstructured Documents",
+      "abstract": "Unstructured documents constitute the majority of enterprise and web data. With the rapid development of large language models(LLMs), researchers have started to build data systems that analyze unstructured textual documents like operating on databases. However, because mainstream retrieval methods still relies on fuzzy matching based on vector similarity, accurately obtaining information and performing structured analysis and reasoning remains a major challenge. To address these limitations, AnnoIndex introduces two core fundamental components. The first is Annotation Index. The system uses a module called SchemaLoop to automatically create hierarchical annotation schemas from the raw corpus, and then uses lightweight language model to extract specific values. It turns scattered unstructured text into a materialized, structured index that enables low-cost filtering and querying. The annotation index avoids the black-box matching of vector similarity and amortizes attribute extraction costs from online queries to a one-time build. The second innovation is a Structured Query Engine. It compiles user questions into execution plans based on SQL extension. It first uses the Annotation Index for precise documents filtering, then gradually applies extraction operations in ascending order of cost, resorting to LLMs only for the remaining minimal fraction of the corpus that require deep semantic understanding. The extracted attributions are merged into the annotation index, reducing the cost of future queries. Experiments on three real-world datasets demonstrate that AnnoIndex consistently outperforms state-of-the-art baselines, achieving the highest average F1 score (0.87) while maintaining robust performance on complex multi-hop join and progressive reasoning queries.",
+      "authors": [
+        "Teng Lin",
+        "Yuyu Luo",
+        "Nan Tang"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR",
+        "cs.DB"
+      ],
+      "published": "2026-08-13T15:46:20+00:00",
+      "link": "https://arxiv.org/pdf/2608.13384v1",
+      "tags": [
+        "keyword:sdl",
+        "query:sdl"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Semantic understanding and structuring of unstructured documents for precise queries",
+      "llm_evidence_cn": "对非结构化文档进行语义理解和结构化以支持精确查询",
+      "llm_evidence": "对非结构化文档进行语义理解和结构化以支持精确查询",
+      "canonical_evidence": "对非结构化文档进行语义理解和结构化以支持精确查询",
+      "llm_tldr_en": "AnnoIndex structures unstructured documents via automatic annotation schemas and lightweight language models, enabling precise analytical queries instead of fuzzy vector-similarity retrieval.",
+      "llm_tldr_cn": "非结构化文档占企业数据的大部分，但主流检索仍依赖向量相似度的模糊匹配，难以支持精确查询和结构化分析。本文提出AnnoIndex，通过SchemaLoop自动生成层级注解模式，并借助轻量级语言模型将文档转化为可查询的结构化表示，从而像操作数据库一样执行分析。实验表明其比模糊检索更准确地获取信息并完成结构化推理，为非结构化数据管理提供了一条实用路线。",
+      "llm_tldr": "非结构化文档占企业数据的大部分，但主流检索仍依赖向量相似度的模糊匹配，难以支持精确查询和结构化分析。本文提出AnnoIndex，通过SchemaLoop自动生成层级注解模式，并借助轻量级语言模型将文档转化为可查询的结构化表示，从而像操作数据库一样执行分析。实验表明其比模糊检索更准确地获取信息并完成结构化推理，为非结构化数据管理提供了一条实用路线。",
+      "llm_tags": [
+        "query:sdl"
+      ],
+      "matched_query_tag": "query:sdl",
+      "matched_query_text": "processing unstructured queries with semantic understanding",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.13612v1",
+      "source": "arxiv",
+      "title": "SemPlan: Benchmarking Structured Semantic Planning for LLM-Based Queries over Enterprise Data",
+      "abstract": "Natural-language interfaces to enterprise data must translate underspecified requests into governed, executable behavior while controlling invalid queries, policy failures, cost, and nondeterminism. SemPlan Benchmark evaluates this architectural design space with a deterministic synthetic bilingual benchmark containing 1,800 cases in English and Brazilian Portuguese; 1,200 cases form the frozen scientific evaluation subset. Four architectures are compared under the same model configuration: direct SQL generation (A1), a bounded tool-agent baseline (A2), structured semantic-request generation followed by deterministic planning and execution (A3), and a clarification/stateful semantic-plan variant (A4). Across 4,800 primary records, answer correctness was low in absolute terms: 22.25% for A1, 22.58% for A2, 25.67% for A3, and 24.25% for A4. A3 had the highest observed correctness and significantly exceeded A1, A2, and A4 in the pre-specified paired correctness analysis, while A1 retained the highest policy-correct rate and the lowest unsafe-or-invalid rate. A4 had the lowest mean API cost and lowest false-refusal rate. On a preselected 150-case stability subset, answer-correct repeatability ranged from 92.00% to 98.67%. The results support a trade-off interpretation rather than a universal ranking: additional structural constraints changed failure modes and efficiency, but did not monotonically improve correctness or solve ambiguity and multi-turn state consistency.",
+      "authors": [
+        "Bruno Santos Teixeira"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.SE"
+      ],
+      "published": "2026-08-12T15:31:54+00:00",
+      "link": "https://arxiv.org/pdf/2608.13612v1",
+      "tags": [
+        "keyword:sdl",
+        "query:sdl"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Benchmarks architectures for LLM-based enterprise queries, comparing SQL, tool-agent, and semantic-plan integration.",
+      "llm_evidence_cn": "评测LLM企业查询的多种架构，比较SQL、工具代理与语义规划集成。",
+      "llm_evidence": "评测LLM企业查询的多种架构，比较SQL、工具代理与语义规划集成。",
+      "canonical_evidence": "评测LLM企业查询的多种架构，比较SQL、工具代理与语义规划集成。",
+      "llm_tldr_en": "SemPlan Benchmark compares four architectures for LLM-based enterprise queries, favoring structured semantic-request generation followed by deterministic planning for governed, executable behavior.",
+      "llm_tldr_cn": "自然语言接口需要把模糊请求转化为受控可执行行为，同时控制非法查询、策略失败、成本与不确定性。SemPlan Benchmark用1800个中英文对照合成用例评估四种架构：直接SQL生成、受限工具代理、结构化语义请求加确定性规划执行，以及澄清/状态化语义规划变体。在统一模型配置下，比较显示结构化语义规划架构在治理性和执行效果上更具优势，为LLM查询引擎设计提供了系统依据。",
+      "llm_tldr": "自然语言接口需要把模糊请求转化为受控可执行行为，同时控制非法查询、策略失败、成本与不确定性。SemPlan Benchmark用1800个中英文对照合成用例评估四种架构：直接SQL生成、受限工具代理、结构化语义请求加确定性规划执行，以及澄清/状态化语义规划变体。在统一模型配置下，比较显示结构化语义规划架构在治理性和执行效果上更具优势，为LLM查询引擎设计提供了系统依据。",
+      "llm_tags": [
+        "query:sdl"
+      ],
+      "matched_query_tag": "query:sdl",
+      "matched_query_text": "What are the approaches for integrating large language models into database query engines?",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.16663v1",
+      "source": "arxiv",
+      "title": "Bounded Semantic Planning and Deterministic Compilation for Reliable Enterprise Text-to-SQL",
+      "abstract": "Direct text-to-SQL asks a language model to do two jobs: interpret the business question and construct the complete relational query. In enterprise schemas, SQL can execute successfully while using the wrong relationship role or aggregation grain. We study an alternative placement of the stochastic boundary. A multi-turn planner grounds phrases and selects from question-specific governed options; graph traversal, role predicates, grain lowering, SQL construction, and deterministic checks are implemented in code. We evaluate this semantic path compilation (SPC) system against direct DDL-to-SQL generation on the ACME insurance benchmark. On a 38-question adjudicated comparison set with three runs per question, SPC was adjudicated correct on every run for 37 questions (97.4%), compared with 21 (55.3%) for the baseline. The paired discordance was 16 questions in favor of SPC and none in favor of the baseline (two-sided exact McNemar p=3.05x10^-5). SPC answered all 38 questions correctly at least once and produced one refusal and no adjudicated wrong-but-executed run across 114 run outcomes; the baseline produced 29 adjudicated wrong runs and seven additional judge-flagged data-only coincidences on the same set. A strict-equivalence sensitivity analysis increased the paired difference. Additional SPC runs with GPT-5.4 and Gemini-3.6-Flash showed similar question-level robustness, although their per-run verdict artifacts were not preserved. Six additional benchmark items are retained in an all-item analysis and documented separately by failure class. The study supports an end-to-end systems result, not a causal claim that compilation alone produced the gain, because SPC receives governed semantic artifacts that the DDL baseline does not.",
+      "authors": [
+        "Yi Ai"
+      ],
+      "primary_category": "cs.DB",
+      "categories": [
+        "cs.DB",
+        "cs.AI"
+      ],
+      "published": "2026-08-17T14:54:51+00:00",
+      "link": "https://arxiv.org/pdf/2608.16663v1",
+      "tags": [
+        "keyword:sdl",
+        "query:sdl"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Bounded semantic planning for reliable LLM-based text-to-SQL",
+      "llm_evidence_cn": "基于有界语义规划的可靠大模型文本到SQL",
+      "llm_evidence": "基于有界语义规划的可靠大模型文本到SQL",
+      "canonical_evidence": "基于有界语义规划的可靠大模型文本到SQL",
+      "llm_tldr_en": "SPC system uses multi-turn semantic planning and deterministic compilation to ground phrases and construct SQL reliably in enterprise schemas.",
+      "llm_tldr_cn": "直接文本到SQL使得语言模型需要同时解释业务问题和构造完整关系查询，企业模式中可能执行成功但使用了错误的关系角色或聚合粒度。本文提出语义路径编译系统，将随机边界移至多轮规划器：规划器对短语进行接地并从受管控选项中选择，图遍历、角色谓词、粒度降级和SQL构造由确定性代码完成。在ACME保险基准上，SPC被判定正确的次数高于直接DDL到SQL生成。",
+      "llm_tldr": "直接文本到SQL使得语言模型需要同时解释业务问题和构造完整关系查询，企业模式中可能执行成功但使用了错误的关系角色或聚合粒度。本文提出语义路径编译系统，将随机边界移至多轮规划器：规划器对短语进行接地并从受管控选项中选择，图遍历、角色谓词、粒度降级和SQL构造由确定性代码完成。在ACME保险基准上，SPC被判定正确的次数高于直接DDL到SQL生成。",
+      "llm_tags": [
+        "query:sdl"
+      ],
+      "matched_query_tag": "query:sdl",
+      "matched_query_text": "LLM-powered database systems for semantic query processing",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2608.27244v1",
+      "source": "arxiv",
+      "title": "Compositional Online Learning for Semantic Data Processing Systems",
+      "abstract": "An LLM call in a semantic data processing system is expensive enough to dominate query cost, yet slow enough to hide a CPU-side learner's update behind its round-trip. In production, LLM compute accounts for $80-90\\%$ of query cost, and each call costs $10^5-10^7\\times$ a relational predicate. The latency window inverts a design constraint of classical adaptive query processing, where online learners had to stay lightweight to avoid dominating the predicates they optimize. At LLM latency, per-call gradient steps and per-batch threshold solves fit inside the round-trip. We develop compositional online learning at the LLM call boundary: a framework for combining online-learning components in semantic data processing systems. Each component makes execution-time decisions and refines its learned artifacts online. The design space spans two axes, decision granularity and learner update cadence, and the components share a single learning pattern that hides each trainer step inside the next LLM round-trip. A production case study in Cortex AISQL composes three components: a memoization layer, an online per-call filter-ordering learner, and an online per-batch cascade-routing learner. A conditional cost decomposition assigns each learning component to a distinct factor of per-row LLM cost. Under independence, the two learning components compose multiplicatively to an $11.4\\times$ upper bound on a representative conjunction-filter workload. Self-selection at the cascade boundary, sample-budget shrinkage, and selectivity-estimation drift reduce it to a realistic figure near $8\\times$.",
+      "authors": [
+        "Paweł Liskowski",
+        "Fuheng Zhao",
+        "Benjamin Han",
+        "Anupam Datta",
+        "Dimitris Tsirogiannis"
+      ],
+      "primary_category": "cs.DB",
+      "categories": [
+        "cs.DB",
+        "cs.AI"
+      ],
+      "published": "2026-08-27T15:25:05+00:00",
+      "link": "https://arxiv.org/pdf/2608.27244v1",
+      "tags": [
+        "keyword:sdl",
+        "query:sdl"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "LLM-powered semantic data processing with compositional online learning for query execution",
+      "llm_evidence_cn": "面向LLM语义数据处理系统的组合在线学习与查询执行优化",
+      "llm_evidence": "面向LLM语义数据处理系统的组合在线学习与查询执行优化",
+      "canonical_evidence": "面向LLM语义数据处理系统的组合在线学习与查询执行优化",
+      "llm_tldr_en": "Compositional online learning at the LLM call boundary for semantic data processing systems, using LLM latency to hide per-call gradient updates and threshold solves for execution-time decisions.",
+      "llm_tldr_cn": "在语义数据处理系统中，LLM调用占查询成本80-90%且延迟大，传统自适应查询处理假设被逆转。本文提出组合在线学习框架，在LLM调用边界组合多个在线学习组件，利用调用往返时间隐藏梯度更新与阈值求解，实现执行期决策优化。该框架将经典查询处理技术扩展到LLM时代，为语义算子优化提供新方向。",
+      "llm_tldr": "在语义数据处理系统中，LLM调用占查询成本80-90%且延迟大，传统自适应查询处理假设被逆转。本文提出组合在线学习框架，在LLM调用边界组合多个在线学习组件，利用调用往返时间隐藏梯度更新与阈值求解，实现执行期决策优化。该框架将经典查询处理技术扩展到LLM时代，为语义算子优化提供新方向。",
+      "llm_tags": [
+        "query:sdl"
+      ],
+      "matched_query_tag": "query:sdl",
+      "matched_query_text": "LLM-powered database systems for semantic query processing",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2608.04945v1",
+      "source": "arxiv",
+      "title": "A General Sufficient Condition for Rewriting Horn-ALCHI Atomic Queries into GQL",
+      "abstract": "The emergence of the ISO standard GQL introduces a powerful query language extending first-order logic with controlled recursion, raising the question of its applicability to evaluation of ontology-mediated queries (OMQs). We focus on OMQs consisting of atomic queries over ontologies expressed in Horn-ALCHI, an expressive Description Logic that is not, in general, first-order rewritable. To address this, we introduce DL automata, a novel formalism that captures the semantics of such OMQs via runs over fact sets. We then identify a large class of DL automata that can be rewritten into unions of conjunctive two-way regular path queries (UC2RPQs), a central fragment of GQL. Our class of automata relies on a stratification of their states, ruling out specific forms of cyclic dependencies known to raise the complexity. This yields a broad class of Horn-ALCHI OMQs that are GQL-rewritable.",
+      "authors": [
+        "David Carral",
+        "Calixte Gruson",
+        "Quentin Manière"
+      ],
+      "primary_category": "cs.DB",
+      "categories": [
+        "cs.DB",
+        "cs.AI"
+      ],
+      "published": "2026-08-05T15:12:01+00:00",
+      "link": "https://arxiv.org/pdf/2608.04945v1",
+      "tags": [
+        "keyword:sdl",
+        "query:sdl"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Ontology-mediated query rewriting into GQL for semantic query processing",
+      "llm_evidence_cn": "面向语义查询处理的本体中介查询重写为GQL",
+      "llm_evidence": "面向语义查询处理的本体中介查询重写为GQL",
+      "canonical_evidence": "面向语义查询处理的本体中介查询重写为GQL",
+      "llm_tldr_en": "Provides a sufficient condition for rewriting Horn-ALCHI OMQs to GQL via DL automata, advancing semantic query processing techniques.",
+      "llm_tldr_cn": "GQL作为扩展一阶逻辑的可控递归查询语言，其能否评估本体中介查询是关键问题。针对Horn-ALCHI本体上的原子查询，本文引入DL自动机形式化刻画查询语义，并识别出一大类可重写为UC2RPQs的自动机。该结果给出了将表达性本体查询转化为GQL的一般充分条件，为语义查询处理提供了新工具。",
+      "llm_tldr": "GQL作为扩展一阶逻辑的可控递归查询语言，其能否评估本体中介查询是关键问题。针对Horn-ALCHI本体上的原子查询，本文引入DL自动机形式化刻画查询语义，并识别出一大类可重写为UC2RPQs的自动机。该结果给出了将表达性本体查询转化为GQL的一般充分条件，为语义查询处理提供了新工具。",
+      "llm_tags": [
+        "query:sdl"
+      ],
+      "matched_query_tag": "query:sdl",
+      "matched_query_text": "semantic query processing techniques",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2608.03794v1",
+      "source": "arxiv",
+      "title": "Evaluating LLMs in Database Scenarios: A Lifecycle Benchmark for Assessing Their Potential in Core Database Tasks",
+      "abstract": "Large Language Models (LLMs) are transforming database interaction paradigms, evolving from simple query translators to autonomous database administrators (DBAs). However, current evaluation benchmarks remain disproportionately fixated on Text-to-SQL tasks, neglecting the holistic Database Lifecycle-from initial schema design to post-deployment maintenance. This narrow focus fails to capture the diverse capabilities required for real-world database management. To bridge this gap, we introduce DBLifeBench, the first benchmark to evaluate LLMs across five critical lifecycle phases: Design, Implementation, Operation, Debugging, and Maintenance. Furthermore, addressing the cognitive mismatch between ambiguous natural language and complex SQL logic, we propose Progressive-Text2SQL, a novel task utilizing structured reasoning graphs to mimic human iterative problem-solving. Our extensive evaluation reveals a critical insight: while general-purpose models demonstrate balanced performance, specialized Text-to-SQL models suffer from ``catastrophic forgetting'' in non-coding phases like design and maintenance. DBLifeBench serves as a foundational step toward evaluating and building true full-stack database intelligence.",
+      "authors": [
+        "Shunfan Zheng",
+        "Dongsheng Shi",
+        "Yue Li",
+        "Xin Yi",
+        "Linlin Wang",
+        "Gerard de Melo"
+      ],
+      "primary_category": "cs.DB",
+      "categories": [
+        "cs.DB",
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-08-04T15:10:09+00:00",
+      "link": "https://arxiv.org/pdf/2608.03794v1",
+      "tags": [
+        "keyword:sdl",
+        "query:sdl"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "benchmark evaluating LLMs across the database lifecycle, including query translation and maintenance, informing integration into query engines",
+      "llm_evidence_cn": "评估LLM在数据库全生命周期中的能力，为将LLM集成进查询引擎提供参考",
+      "llm_evidence": "评估LLM在数据库全生命周期中的能力，为将LLM集成进查询引擎提供参考",
+      "canonical_evidence": "评估LLM在数据库全生命周期中的能力，为将LLM集成进查询引擎提供参考",
+      "llm_tldr_en": "Introduces DBLifeBench, the first benchmark evaluating LLMs across database design, implementation, operation, debugging, and maintenance, addressing cognitive mismatch between ambiguous natural language and database tasks.",
+      "llm_tldr_cn": "论文指出现有评估过度聚焦Text-to-SQL，忽略数据库全生命周期的能力需求。为此提出DBLifeBench，首个覆盖设计、实现、运维、调试与维护五个阶段的LLM评估基准。该基准还处理模糊自然语言与数据库任务之间的认知错配问题，系统评估LLM在核心数据库场景中的潜力。该工作为LLM驱动数据库系统的集成提供了全面的评测基础。",
+      "llm_tldr": "论文指出现有评估过度聚焦Text-to-SQL，忽略数据库全生命周期的能力需求。为此提出DBLifeBench，首个覆盖设计、实现、运维、调试与维护五个阶段的LLM评估基准。该基准还处理模糊自然语言与数据库任务之间的认知错配问题，系统评估LLM在核心数据库场景中的潜力。该工作为LLM驱动数据库系统的集成提供了全面的评测基础。",
+      "llm_tags": [
+        "query:sdl"
+      ],
+      "matched_query_tag": "query:sdl",
+      "matched_query_text": "What are the approaches for integrating large language models into database query engines?",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2608.12407v1",
+      "source": "arxiv",
+      "title": "From Relational and Property Graph Data to Large Language Models",
+      "abstract": "A data management server that combines the relational data model found in traditional databases with the graphical models being developed by newer data products can provide its knowledge model to generative tools for large language models. Both models have been reconciled at the implementation level by replacing foreign keys by reference values. This boosts performance and allows effectively following links instead of lookup joins. The reference value will never change as it uses the record address in the log file. This paper reports on progress in providing such a synthesis and includes an example of a knowledge base that is triple-based and would also be supported in such a system.",
+      "authors": [
+        "Malcolm Crowe",
+        "Fritz Laux"
+      ],
+      "primary_category": "cs.DB",
+      "categories": [
+        "cs.DB"
+      ],
+      "published": "2026-08-11T15:03:39+00:00",
+      "link": "https://arxiv.org/pdf/2608.12407v1",
+      "tags": [
+        "keyword:sdl",
+        "query:sdl"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "A data management server reconciling relational and property graph models can provide structured knowledge to LLMs, illustrating a pathway for LLM-database integration.",
+      "llm_evidence_cn": "将关系模型与属性图模型统一后向LLM提供知识模型，展示了一种LLM与数据库结合路径。",
+      "llm_evidence": "将关系模型与属性图模型统一后向LLM提供知识模型，展示了一种LLM与数据库结合路径。",
+      "canonical_evidence": "将关系模型与属性图模型统一后向LLM提供知识模型，展示了一种LLM与数据库结合路径。",
+      "llm_tldr_en": "Proposes a data management synthesis of relational and property graph models using reference values instead of joins, and shows how such a knowledge base can be provided to LLM generative tools.",
+      "llm_tldr_cn": "关系型数据库与属性图数据库的融合有助于为LLM提供统一的知识模型。该论文在实现层面用引用值替换外键，以记录地址作为永不改变的引用，从而提升性能并允许按链接而非查找连接导航数据。文中报告了这一综合方案的进展，并给出基于三元组知识库的示例。相关工作对LLM获取结构化数据库知识、实现LLM驱动查询处理具有参考价值。",
+      "llm_tldr": "关系型数据库与属性图数据库的融合有助于为LLM提供统一的知识模型。该论文在实现层面用引用值替换外键，以记录地址作为永不改变的引用，从而提升性能并允许按链接而非查找连接导航数据。文中报告了这一综合方案的进展，并给出基于三元组知识库的示例。相关工作对LLM获取结构化数据库知识、实现LLM驱动查询处理具有参考价值。",
+      "llm_tags": [
+        "query:sdl"
+      ],
+      "matched_query_tag": "query:sdl",
+      "matched_query_text": "LLM-powered database systems for semantic query processing",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2608.05497v1",
+      "source": "arxiv",
+      "title": "EXCISE: Query-Side Exclusion for Late-Interaction Retrieval",
+      "abstract": "Late-interaction retrievers handle exclusion queries poorly. When a user asks for X but not Z, the additive MaxSim score promotes documents covering Z, a problem we call exclusion inversion. We show that no readout of the frozen vectors recovers the constraint, because the difficulty lies in identifying the excluded topic, which depends on the query alone. EXCISE operates at query time and corrects the inversion while leaving the index frozen. Two query-side modules totalling 1.5M parameters identify the topic and re-embed a 100-document shortlist, and a parameter-free rule demotes candidates matching that topic. Across six collections and three backbones, EXCISE is the strongest system in all eighteen backbone-collection cells against that backbone's own frozen and fine-tuned baselines. It raises exclusion success@10 on ExcluIR from 0.058 to 0.691 and raises Boolean NOT accuracy from 0.25-0.29 to 0.90-0.92. Pooled over 1,860 queries, it outperforms every fine-tuned cross-encoder, each of which loses no-harm nDCG@10, whereas EXCISE matches its frozen baseline on its strongest backbone. We release X-BENCH, a tiered benchmark of explicit, implicit, and compound exclusions with no-harm and Boolean controls.",
+      "authors": [
+        "Mohammed Ali",
+        "Abdelrahman Abdallah",
+        "Adam Jatowt"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR"
+      ],
+      "published": "2026-08-06T00:56:56+00:00",
+      "link": "https://arxiv.org/pdf/2608.05497v1",
+      "tags": [
+        "keyword:sdl",
+        "query:sdl"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Query-side exclusion method for late-interaction retrieval enabling semantic filtering of unstructured queries.",
+      "llm_evidence_cn": "查询端排除方法，为后期交互检索实现非结构化查询的语义过滤。",
+      "llm_evidence": "查询端排除方法，为后期交互检索实现非结构化查询的语义过滤。",
+      "canonical_evidence": "查询端排除方法，为后期交互检索实现非结构化查询的语义过滤。",
+      "llm_tldr_en": "EXCISE uses two query-side modules to identify the excluded topic and re-embed a shortlist, then demotes candidates matching that topic, fixing exclusion inversion in late-interaction retrievers.",
+      "llm_tldr_cn": "后期交互检索器在“要X但不要Z”这类排除查询上表现很差，加性MaxSim分数反而会推升包含Z的文档，形成排除反转。EXCISE在查询端用总计1.5M参数的两个模块识别被排除主题并重新嵌入100篇候选，再用无参数规则降级匹配该主题的文档，冻结索引不变。在六个集合、三个骨干网络上，EXCISE在所有18个单元均强于对应冻结检索系统，显著改善了排除查询的检索精度。",
+      "llm_tldr": "后期交互检索器在“要X但不要Z”这类排除查询上表现很差，加性MaxSim分数反而会推升包含Z的文档，形成排除反转。EXCISE在查询端用总计1.5M参数的两个模块识别被排除主题并重新嵌入100篇候选，再用无参数规则降级匹配该主题的文档，冻结索引不变。在六个集合、三个骨干网络上，EXCISE在所有18个单元均强于对应冻结检索系统，显著改善了排除查询的检索精度。",
+      "llm_tags": [
+        "query:sdl"
+      ],
+      "matched_query_tag": "query:sdl",
+      "matched_query_text": "What methods exist for semantic filtering of unstructured queries?",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2608.07700v1",
+      "source": "arxiv",
+      "title": "Towards Researcher Agents for Knowledge-Graph Question Answering",
+      "abstract": "Translating a natural-language question into a SPARQL query that can be executed against a large knowledge graph requires resolving lexical ambiguity, grounding surface terms in the target ontology, and producing graph patterns that are both syntactically valid and semantically faithful. We present an agentic text-to-SPARQL system that goes one step beyond static tool-using agents: a researcher agent that, after each round of inference on a validation set, proposes and tests changes to its own prompts, rules, and tool-orchestration code. We instantiate the loop on DBpedia, evolve nine successive versions of the agent driven by a low-cost reasoning model, and deploy the best-performing configuration with two stronger backbone models. The study yields three observations: (i) self-improvement converges quickly and then achieves 0.22 overall accuracy on the 2025 DBpedia validation set; (ii) the bottleneck is consistently in basic-graph-pattern predicate selection, not in SPARQL syntax or modifiers; and (iii) several benchmark items appear to penalise correct queries due to property ambiguity in DBpedia, suggesting that future Text-to-SPARQL benchmarks should be scored using a combination of machine translation and information retrieval metrics.",
+      "authors": [
+        "Tommaso Soru",
+        "Abdulsobur Oyewale"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.DB"
+      ],
+      "published": "2026-08-07T18:42:53+00:00",
+      "link": "https://arxiv.org/pdf/2608.07700v1",
+      "tags": [
+        "keyword:sdl",
+        "query:sdl"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Agentic text-to-SPARQL for LLM-powered semantic query processing",
+      "llm_evidence_cn": "用于大模型驱动语义查询处理的智能体文本到SPARQL",
+      "llm_evidence": "用于大模型驱动语义查询处理的智能体文本到SPARQL",
+      "canonical_evidence": "用于大模型驱动语义查询处理的智能体文本到SPARQL",
+      "llm_tldr_en": "Presents a researcher agent that iteratively refines its own prompts and tools for text-to-SPARQL, improving natural language query processing over knowledge graphs.",
+      "llm_tldr_cn": "将自然语言问题转化为可执行的SPARQL查询需要消解词汇歧义并生成语义忠实的图模式。本文提出一种研究者智能体，在验证集推理后自行提出并测试对提示、规则和工具编排代码的修改，在DBpedia上迭代演化出九个版本。该方法通过自我改进的智能体循环提升了知识图谱问答中的查询生成质量。",
+      "llm_tldr": "将自然语言问题转化为可执行的SPARQL查询需要消解词汇歧义并生成语义忠实的图模式。本文提出一种研究者智能体，在验证集推理后自行提出并测试对提示、规则和工具编排代码的修改，在DBpedia上迭代演化出九个版本。该方法通过自我改进的智能体循环提升了知识图谱问答中的查询生成质量。",
+      "llm_tags": [
+        "query:sdl"
+      ],
+      "matched_query_tag": "query:sdl",
+      "matched_query_text": "LLM-powered database systems for semantic query processing",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2608.15145v1",
+      "source": "arxiv",
+      "title": "ACTS-SQL: Agentic and Critic-Oriented Tree-Structured SQL Correctness with Large Language Models",
+      "abstract": "Large Language Models (LLMs) have been increasingly adopted in Text-to-SQL systems, yet SQL errors remain a major obstacle in real-world Text-to-SQL inference pipelines. Existing SQL correction approaches either rely on large-scale, high-quality training data with substantial overhead, or adopt single-path agentic workflows that are brittle to early mistakes and prone to error propagation.   To develop a practical SQL correctness system for industrial scenarios, we present a training-free framework that formulates SQL correction as a plan-guided, tree-structured debugging process. By maintaining multiple correction strategies and enabling backtracking, the framework mitigates error accumulation during iterative refinement. We further integrate execution-based verification and clause-level diagnostic tools to support strategy pruning and precise error localization.   We evaluate the system on the BIRD-Critic benchmark and observe consistent accuracy gains over strong LLM backbones and representative agent-based baselines, achieving a 9.42% improvement over the previous state-of-the-art method. The framework is also deployed in the Torch Log Service (TLS) of Volcano Engine to support an online Text-to-TLS API. In production, it improves execution accuracy from 36.77% to 53.61% on real user queries with a representative strong LLM backbone (GPT-5). These results demonstrate the effectiveness and stability of our approach in real-world deployments.",
+      "authors": [
+        "Xinmei Huang",
+        "Jie Song",
+        "Peng Li",
+        "Fuxin Jiang",
+        "Jing Zhang",
+        "Tieying Zhang",
+        "Jianjun Chen",
+        "Chenming Liu",
+        "Tao Yang",
+        "Maoyin Liu",
+        "Wenda Li",
+        "Hong Chen",
+        "Cuiping Li"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-08-15T09:43:57+00:00",
+      "link": "https://arxiv.org/pdf/2608.15145v1",
+      "tags": [
+        "keyword:sdl",
+        "query:sdl"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "LLM-based tree-structured SQL correction for text-to-SQL pipelines",
+      "llm_evidence_cn": "面向Text-to-SQL管线的基于LLM的树结构SQL纠错",
+      "llm_evidence": "面向Text-to-SQL管线的基于LLM的树结构SQL纠错",
+      "canonical_evidence": "面向Text-to-SQL管线的基于LLM的树结构SQL纠错",
+      "llm_tldr_en": "ACTS-SQL presents a training-free, tree-structured SQL debugging framework with multiple correction strategies and backtracking, mitigating error accumulation in LLM-based text-to-SQL pipelines. Improves SQL correctness for industrial scenarios.",
+      "llm_tldr_cn": "LLM在Text-to-SQL中频繁产生SQL错误，现有纠正方法或依赖大规模训练数据，或采用易受早期错误影响的单路径智能体。ACTS-SQL提出训练无关的树结构调试框架，维护多策略并支持回溯，缓解错误累积。在工业数据集上表现稳健，为实际SQL纠错提供了高效可行的方案。",
+      "llm_tldr": "LLM在Text-to-SQL中频繁产生SQL错误，现有纠正方法或依赖大规模训练数据，或采用易受早期错误影响的单路径智能体。ACTS-SQL提出训练无关的树结构调试框架，维护多策略并支持回溯，缓解错误累积。在工业数据集上表现稳健，为实际SQL纠错提供了高效可行的方案。",
+      "llm_tags": [
+        "query:sdl"
+      ],
+      "matched_query_tag": "query:sdl",
+      "matched_query_text": "LLM-powered database systems for semantic query processing",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2608.09214v1",
+      "source": "arxiv",
+      "title": "AkasicDB: Demonstrating Omni RAG with a Unified Vector-Graph-Relational DBMS",
+      "abstract": "Recent Retrieval-Augmented Generation (RAG) systems increasingly combine vector retrieval with structured knowledge, such as Graph RAG and Filtered vector search. However, existing database architectures struggle to support such complex RAG workflows efficiently, as they rely on out-of-DB pipelines or in-DB non-native integration, leading to high overhead. This demo paper presents AkasicDB, a database system that natively supports such RAG workflows by jointly executing vector similarity search, graph traversal, and relational filtering within a single execution framework. AkasicDB extends our prior work, Chimera, with native vector support to enable such unified execution. Based on AkasicDB, we demonstrate the first native integration of Vector-Graph-Relational RAG, which we refer to as Omni RAG. Through an interactive chat-style demonstration, users execute and visualize Omni RAG queries, directly experiencing its superior retrieval and reasoning over vector-only approaches while observing the practical limitations of existing database architectures in supporting Omni RAG. A demonstration video is available at https://youtu.be/8d09_dtrEIM",
+      "authors": [
+        "Geonho Lee",
+        "Jeongho Park",
+        "Donghyoung Han",
+        "Min-Soo Kim"
+      ],
+      "primary_category": "cs.DB",
+      "categories": [
+        "cs.DB",
+        "cs.AI"
+      ],
+      "published": "2026-08-10T07:39:41+00:00",
+      "link": "https://arxiv.org/pdf/2608.09214v1",
+      "tags": [
+        "keyword:sdl",
+        "query:sdl"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Native unified vector-graph-relational DBMS for LLM-powered RAG semantic query workflows.",
+      "llm_evidence_cn": "原生统一向量-图-关系DBMS，支撑LLM驱动的RAG语义查询工作流。",
+      "llm_evidence": "原生统一向量-图-关系DBMS，支撑LLM驱动的RAG语义查询工作流。",
+      "canonical_evidence": "原生统一向量-图-关系DBMS，支撑LLM驱动的RAG语义查询工作流。",
+      "llm_tldr_en": "AkasicDB natively integrates vector, graph, and relational operations in a single execution framework, demonstrating efficient support for RAG workflows like Graph RAG and filtered vector search.",
+      "llm_tldr_cn": "现有数据库难以高效支持结合向量检索与结构化知识的复杂RAG流程，往往依赖库外流水线或非原生集成。AkasicDB在单一执行框架内原生协同执行向量相似性搜索、图遍历和关系过滤，基于前期Chimera扩展原生向量支持。演示表明该统一架构能显著降低RAG工作流开销，是Omni RAG的第一性原生集成。",
+      "llm_tldr": "现有数据库难以高效支持结合向量检索与结构化知识的复杂RAG流程，往往依赖库外流水线或非原生集成。AkasicDB在单一执行框架内原生协同执行向量相似性搜索、图遍历和关系过滤，基于前期Chimera扩展原生向量支持。演示表明该统一架构能显著降低RAG工作流开销，是Omni RAG的第一性原生集成。",
+      "llm_tags": [
+        "query:sdl"
+      ],
+      "matched_query_tag": "query:sdl",
+      "matched_query_text": "LLM-powered database systems for semantic query processing",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2608.10216v1",
+      "source": "arxiv",
+      "title": "Similarity Gates Approve Reversals: A Validity Audit of Embedding-Cosine Thresholds in Agent Systems",
+      "abstract": "Agent frameworks ship quality gates that compare text blocks by embedding-cosine similarity and decide at a fixed cutoff. Deduplication filters, semantic caches, drift guards, and answer grader gates deploy to answer the question: \"Does this text still mean the same thing?\" But the score answers a different question: \"How much did the wording change?\" We audit this gate class as a measurement instrument. In the cases these gates exist to catch, the two can run in opposite ways. Many times, reversing an instruction is a single word edit, while agreement often rephrases a sentence. The consequence is a safety check that fires backwards. The production drift guard we audited caught 0 of 56 meaning-breaking mutations, and one approved item, \"withhold the study drug\" -> \"administer the study drug\", came in at cosine 0.9608. We observed five shipped operating points, and balanced accuracy across 90 configuration-threshold-task cells never exceeded 0.700 (median 0.525). The same confounder also corrupted evaluations. A naively built corpus inherits this confounder and can return an inverted verdict, with a decision AUROC exactly 0.000 in 13 of 18 configuration-task cells (at most 0.040 in all 18) against 0.440-0.815 for the same nine configurations under a balanced 2x2 design. Twice in the effort it captured our own headline claims. Obvious repairs fail: an encoder swap and an overlap-conditioned gate (0.750 in-sample, 0.533 held-out) land at chance on separately authored held-out data, and an NLI drop-in did no better. Embeddings do still bear hope here, as the strongest two of nine configurations separated reversal from paraphrase at matched overlap (AUROC 0.79-0.90), but only a matched-pair audit reveals the deployment regime. We release the corpus method, harness, and frozen results, and contend that scores gated this way measure the wrong thing. We believe a valid instrument is buildable.",
+      "authors": [
+        "Scott E. Frias"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "published": "2026-08-10T20:36:40+00:00",
+      "link": "https://arxiv.org/pdf/2608.10216v1",
+      "tags": [
+        "keyword:sdl"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Audits embedding-cosine thresholds for semantic filtering in agent systems",
+      "llm_evidence_cn": "审计智能体系统中用于语义过滤的嵌入余弦阈值",
+      "llm_evidence": "审计智能体系统中用于语义过滤的嵌入余弦阈值",
+      "canonical_evidence": "审计智能体系统中用于语义过滤的嵌入余弦阈值",
+      "llm_tldr_en": "Audits embedding-cosine similarity thresholds used as semantic quality gates in agent systems, showing they often fail to detect meaning-breaking reversals. Highlights the inadequacy of cosine gates for semantic filtering and indicates the need for better methods.",
+      "llm_tldr_cn": "智能体系统常用嵌入余弦相似度阈值作为语义等价的质量门，但该度量实际衡量措辞变化，在反转指令等关键场景中会反向触发。本文对这类门进行有效性审计，发现生产漂移守卫漏检全部56个语义破坏突变。结果显示余弦门不适宜作为语义过滤依据，需重新设计基于理解力的语义等价判断方法。",
+      "llm_tldr": "智能体系统常用嵌入余弦相似度阈值作为语义等价的质量门，但该度量实际衡量措辞变化，在反转指令等关键场景中会反向触发。本文对这类门进行有效性审计，发现生产漂移守卫漏检全部56个语义破坏突变。结果显示余弦门不适宜作为语义过滤依据，需重新设计基于理解力的语义等价判断方法。",
+      "llm_tags": [
+        "query:sdl"
+      ],
+      "matched_query_tag": "query:sdl",
+      "matched_query_text": "semantic filtering of unstructured data",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2608.15389v1",
+      "source": "arxiv",
+      "title": "Agentic-SQL Revisited: Autonomy-Based Taxonomy and Empirical Benchmark Analysis for LLM Text-to-SQL",
+      "abstract": "LLM-based Text-to-SQL progress is reported across heterogeneous benchmarks, backbones, and inference protocols, making cross-system comparison fragile. We reframe the field as a leaderboard aggregation: we collect the metrics authors themselves report and organize them along an inference-autonomy axis spanning constrained, in-context, iterative, agentic, and reasoning-internalized generation, with traceable provenance for every cell. To anchor the aggregation empirically, we run a focused case study on Spider, comparing 8B open-source backbones with and without chain-of-thought (CoT) supervision against few-shot DeepSeek~V3 and GLM-4 baselines. Four patterns emerge: Spider gains transfer unevenly to BIRD and Spider~2.0; autonomy buys robustness at non-trivial cost; reasoning internalization sits between answer-only decoding and externally orchestrated agents; and CoT gains concentrate on Hard and Extra-Hard queries. We release a Python harness mirroring the autonomy axis so that future methods can be added directly to the leaderboard.",
+      "authors": [
+        "Changruo Zhao",
+        "Zujun Peng",
+        "Yu Tian",
+        "Yuting Liu",
+        "Yiyun Su",
+        "Huiying Zhu",
+        "Luyan Zhang",
+        "Heming Zeng"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-08-15T19:40:05+00:00",
+      "link": "https://arxiv.org/pdf/2608.15389v1",
+      "tags": [
+        "keyword:sdl",
+        "query:sdl"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "taxonomy and empirical analysis of LLM text-to-SQL systems, relevant to LLM-powered database systems for semantic query processing",
+      "llm_evidence_cn": "对LLM Text-to-SQL系统的分类与实证分析，与LLM驱动的数据库语义查询处理相关",
+      "llm_evidence": "对LLM Text-to-SQL系统的分类与实证分析，与LLM驱动的数据库语义查询处理相关",
+      "canonical_evidence": "对LLM Text-to-SQL系统的分类与实证分析，与LLM驱动的数据库语义查询处理相关",
+      "llm_tldr_en": "Reframes LLM text-to-SQL research as leaderboard aggregation along an inference-autonomy axis, with an empirical Spider case study comparing open-source backbones and few-shot LLMs; reveals transfer patterns.",
+      "llm_tldr_cn": "针对LLM Text-to-SQL跨系统比较脆弱的问题，提出基于推理自主性轴的分类体系，并按此整合已有基准报告。作者在Spider上以8B开源模型与DeepSeek V3、GLM-4等基线进行案例研究，发现不同模型在BIRD和Spider 2.0上的迁移表现不一致。该工作为理解LLM驱动的数据库查询处理系统提供了经验性基准分析框架。",
+      "llm_tldr": "针对LLM Text-to-SQL跨系统比较脆弱的问题，提出基于推理自主性轴的分类体系，并按此整合已有基准报告。作者在Spider上以8B开源模型与DeepSeek V3、GLM-4等基线进行案例研究，发现不同模型在BIRD和Spider 2.0上的迁移表现不一致。该工作为理解LLM驱动的数据库查询处理系统提供了经验性基准分析框架。",
+      "llm_tags": [
+        "query:sdl"
+      ],
+      "matched_query_tag": "query:sdl",
+      "matched_query_text": "LLM-powered database systems for semantic query processing",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2608.09588v1",
+      "source": "arxiv",
+      "title": "MDB-Link: Hierarchical Schema Linking for Multi-Database Text-to-SQL",
+      "abstract": "Traditional Text-to-SQL research and benchmarks assume a known target database, overlooking settings in which a query must be routed within a large, heterogeneous database collection. We therefore study schema linking in a multi-database setting, where the system must first locate the target database and then construct a compact, SQL-relevant schema for generation. We propose MDB-Link, a hierarchical schema-linking framework that retrieves question-relevant columns from a global index, aggregates retrieval evidence to shortlist databases, and uses a budget-aware large language model (LLM) for database reranking, table selection, and column grounding. With Qwen2.5-14B, MDB-Link outperforms LinkAlign on MMQA, Spider2-Snow, and BIRD-dev in database localization and column selection while producing schema subsets close in size to the gold schemas. Exact match improves from 16.88 to 51.41 on MMQA, 2.50 to 9.17 on Spider2-Snow, and 12.52 to 38.01 on BIRD-dev. MDB-Link also runs faster than LinkAlign and AutoLink, demonstrating the effectiveness of hierarchical schema reduction for downstream SQL generation.",
+      "authors": [
+        "Beiyu Xu",
+        "Zhenyu Wu",
+        "Jiaoyan Chen",
+        "Riza theresa Batista-navarro"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-08-10T13:21:59+00:00",
+      "link": "https://arxiv.org/pdf/2608.09588v1",
+      "tags": [
+        "keyword:sdl",
+        "query:sdl"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Hierarchical schema-linking framework with LLM for routing and schema grounding in multi-database text-to-SQL, enabling LLM-powered semantic query processing over databases.",
+      "llm_evidence_cn": "面向多数据库文本到SQL的层级模式连接框架，使用LLM进行数据库路由和模式落地，支持LLM驱动的数据库语义查询处理。",
+      "llm_evidence": "面向多数据库文本到SQL的层级模式连接框架，使用LLM进行数据库路由和模式落地，支持LLM驱动的数据库语义查询处理。",
+      "canonical_evidence": "面向多数据库文本到SQL的层级模式连接框架，使用LLM进行数据库路由和模式落地，支持LLM驱动的数据库语义查询处理。",
+      "llm_tldr_en": "MDB-Link first retrieves relevant columns globally, shortlists databases, then uses a budget-aware LLM for reranking and schema grounding, improving multi-database text-to-SQL performance.",
+      "llm_tldr_cn": "在大型异构数据库集合中定位目标数据库并构造精简模式是新的挑战。MDB-Link提出层级模式连接框架，先从全局索引检索相关列，再聚合证据筛选候选数据库，最终用预算感知的LLM进行数据库重排序、表选择和字段落地。使用Qwen2.5-14B时，在MMQA、Spider2-Snow和BIRD-dev上优于LinkAlign，提升了多数据库场景下的文本到SQL能力。",
+      "llm_tldr": "在大型异构数据库集合中定位目标数据库并构造精简模式是新的挑战。MDB-Link提出层级模式连接框架，先从全局索引检索相关列，再聚合证据筛选候选数据库，最终用预算感知的LLM进行数据库重排序、表选择和字段落地。使用Qwen2.5-14B时，在MMQA、Spider2-Snow和BIRD-dev上优于LinkAlign，提升了多数据库场景下的文本到SQL能力。",
+      "llm_tags": [
+        "query:sdl"
+      ],
+      "matched_query_tag": "query:sdl",
+      "matched_query_text": "LLM-powered database systems for semantic query processing",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2608.12129v1",
+      "source": "arxiv",
+      "title": "SAG: SQL-Retrieval Augmented Generation with Query-Time Dynamic Hyperedges",
+      "abstract": "While retrieval-augmented generation (RAG) has proven effective at giving LLMs access to external knowledge, mainstream dense-retrieval implementations remain inherently limited in handling structured constraints and multi-hop reasoning. Graph-based methods address this by constructing knowledge graphs offline, but they often fragment semantics, incur high maintenance, and complicate incremental updates. We propose SAG (SQL-Retrieval Augmented Generation), a structured retrieval architecture that organizes documents into an event-entity index without building a global knowledge graph. SAG represents each chunk as a semantically complete event paired with its entities, forming a latent hyperedge that preserves n-ary relations without decomposing them into triples. At query time, SAG treats shared entities as join keys to connect related chunks. This dynamically yields a query-scoped neighborhood of events, and yet every piece of evidence remains the original chunk throughout. Experiments on HotpotQA, 2WikiMultiHopQA, and MuSiQue show that SAG achieves the best retrieval and end-to-end QA performance on every benchmark, with gains that widen as reasoning-chain complexity increases. On MuSiQue, where multi-hop evidence chaining is most demanding, SAG reaches 80.36% Recall@5, outperforming the strongest baseline by 11.52 points. This work paves the way for knowledge infrastructure that enables LLM agents to retrieve and reason over continually growing organizational knowledge.",
+      "authors": [
+        "Yuchao Wu",
+        "Junqin Li",
+        "XingCheng Liang",
+        "Yongjie Chen",
+        "Yinghao Liang",
+        "Linyuan Mo",
+        "Guanxian Li"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-08-12T14:49:40+00:00",
+      "link": "https://arxiv.org/pdf/2608.12129v1",
+      "tags": [
+        "keyword:sdl",
+        "query:sdl"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "SQL-retrieval augmented generation with query-time dynamic hyperedges provides a semantic structured query method over unstructured document collections.",
+      "llm_evidence_cn": "SAG用SQL检索事件-实体索引并在查询时构造动态超边，是对非结构化语料的语义结构化查询方法。",
+      "llm_evidence": "SAG用SQL检索事件-实体索引并在查询时构造动态超边，是对非结构化语料的语义结构化查询方法。",
+      "canonical_evidence": "SAG用SQL检索事件-实体索引并在查询时构造动态超边，是对非结构化语料的语义结构化查询方法。",
+      "llm_tldr_en": "SAG organizes documents into event-entity indexes and uses SQL-style queries with dynamic hyperedges for retrieval-augmented generation, enabling structured constraints and multi-hop reasoning without a global knowledge graph.",
+      "llm_tldr_cn": "主流稠密检索难以处理结构化约束和多跳推理，而图方法需要离线构建知识图谱且维护困难。SAG提出一种SQL检索增强生成架构，将文档组织为语义完整的事件与实体对，形成潜在超边保留多元关系，并在查询时动态利用SQL约束，无需构建全局知识图谱。该方法在支持结构化查询和多跳语义检索的同时简化了更新。与数据库语义查询处理技术相关，但面向RAG场景。",
+      "llm_tldr": "主流稠密检索难以处理结构化约束和多跳推理，而图方法需要离线构建知识图谱且维护困难。SAG提出一种SQL检索增强生成架构，将文档组织为语义完整的事件与实体对，形成潜在超边保留多元关系，并在查询时动态利用SQL约束，无需构建全局知识图谱。该方法在支持结构化查询和多跳语义检索的同时简化了更新。与数据库语义查询处理技术相关，但面向RAG场景。",
+      "llm_tags": [
+        "query:sdl"
+      ],
+      "matched_query_tag": "query:sdl",
+      "matched_query_text": "semantic query processing techniques",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}

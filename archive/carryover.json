@@ -1,6 +1,541 @@
 {
-  "generated_at": "2026-03-06T19:11:18.471356+00:00",
-  "updated_date": "20260306",
+  "generated_at": "2026-09-01T02:04:35.681808+00:00",
+  "updated_date": "20260803-20260901",
   "carryover_days": 9,
-  "items": []
+  "tag_states": {
+    "sdl": {
+      "updated_date": "20260803-20260901",
+      "carryover_days": 9,
+      "items": [
+        {
+          "id": "2608.24060v1",
+          "source": "arxiv",
+          "title": "SQLite is Enough. Lexical, Semantic, and Hybrid Search with scrydb",
+          "abstract": "This work introduces scrydb, a Python library that enables lexical, semantic, and hybrid search within SQLite. For lexical search, scrydb leverages SQLite's full-text search extension FTS5. Semantic search builds on sqlite-vec, a SQLite extension for vector search. Furthermore, the library allows users to rerank and fuse retrieval results to combine both lexical and semantic approaches, providing a lightweight solution for downstream tasks in information retrieval (IR) or agentic search. We evaluate scrydb on various IR benchmark datasets and demonstrate its effectiveness in text retrieval based on keyword matching, semantic similarity, and rank fusion. In addition, we provide insights into query latency and the trade-off between efficiency and effectiveness. scrydb is available under the MIT license.",
+          "authors": [
+            "Timo Breuer"
+          ],
+          "primary_category": "cs.IR",
+          "categories": [
+            "cs.IR",
+            "cs.CL",
+            "cs.DB"
+          ],
+          "published": "2026-08-25T04:42:54+00:00",
+          "link": "https://arxiv.org/pdf/2608.24060v1",
+          "tags": [
+            "keyword:sdl",
+            "query:sdl"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "implements semantic query processing as vector-based search within SQLite, enabling lexical/semantic/hybrid querying in a database",
+          "llm_evidence_cn": "在SQLite内实现基于向量的语义查询处理，支持词法、语义与混合检索",
+          "llm_evidence": "在SQLite内实现基于向量的语义查询处理，支持词法、语义与混合检索",
+          "canonical_evidence": "在SQLite内实现基于向量的语义查询处理，支持词法、语义与混合检索",
+          "llm_tldr_en": "Introduces scrydb, a Python library that brings lexical, semantic, and hybrid search to SQLite using FTS5 and sqlite-vec, supporting reranking and rank fusion; experiments on IR benchmarks show effective text retrieval and latency trade-offs.",
+          "llm_tldr_cn": "论文提出scrydb库，在SQLite中集成了词法搜索(FTS5)、语义搜索(sqlite-vec)及混合搜索。该方法以轻量方式将语义相似度检索融入数据库系统，并支持重排与结果融合。在多个IR基准上的实验验证了其在文本检索中的有效性，同时分析了查询延迟与效率权衡。该工作为在数据库内实现语义查询处理提供了实用方案。",
+          "llm_tldr": "论文提出scrydb库，在SQLite中集成了词法搜索(FTS5)、语义搜索(sqlite-vec)及混合搜索。该方法以轻量方式将语义相似度检索融入数据库系统，并支持重排与结果融合。在多个IR基准上的实验验证了其在文本检索中的有效性，同时分析了查询延迟与效率权衡。该工作为在数据库内实现语义查询处理提供了实用方案。",
+          "llm_tags": [
+            "query:sdl"
+          ],
+          "matched_query_tag": "query:sdl",
+          "matched_query_text": "semantic query processing techniques",
+          "matched_requirement_id": "req-1",
+          "selection_source": "carryover_cache",
+          "paper_id": "2608.24060v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2608.10139v1",
+          "source": "arxiv",
+          "title": "AI Query Compilation for Unified and Optimized Execution",
+          "abstract": "In this vision paper, we propose a novel architectural paradigm for accelerated AI query execution via a unified compiled execution strategy. By compiling the hybrid AI Query as a whole -- integrating both standard SQL relational constructs and LLM inference layers into a single, unified tensor compute graph -- we completely alleviate PCIe data movement bottlenecks across execution boundaries and enable global compiler optimizations and efficient automatic sharding. We demonstrate the viability of this unified execution paradigm on select and extended AI queries on SemBench Reviews and Movies datasets, achieving up to 5.3x latency speedup and 9.8x throughput speedup on TPUs, and outline a research roadmap of open technical challenges to realize this vision.",
+          "authors": [
+            "Yeounoh Chung",
+            "Helena Caminal",
+            "Fatma Ozcan"
+          ],
+          "primary_category": "cs.DB",
+          "categories": [
+            "cs.DB"
+          ],
+          "published": "2026-08-10T18:54:13+00:00",
+          "link": "https://arxiv.org/pdf/2608.10139v1",
+          "tags": [
+            "keyword:sdl",
+            "query:sdl"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "proposes compiling AI queries that integrate SQL and LLM inference into a unified tensor graph, effectively introducing semantic operators to query execution",
+          "llm_evidence_cn": "将SQL与LLM推理统一编译为张量图，在查询执行中引入语义算子",
+          "llm_evidence": "将SQL与LLM推理统一编译为张量图，在查询执行中引入语义算子",
+          "canonical_evidence": "将SQL与LLM推理统一编译为张量图，在查询执行中引入语义算子",
+          "llm_tldr_en": "Vision paper proposing unified compiled execution for hybrid AI queries, integrating SQL relational constructs and LLM inference layers into one tensor compute graph; preliminary results show up to 5.3x latency and 9.8x throughput speedups on TPUs.",
+          "llm_tldr_cn": "针对AI查询中SQL与LLM推理分离执行导致PCIe数据移动瓶颈的问题，提出统一编译执行范式。该方法将混合AI查询整体编译为单一张量计算图，实现跨执行边界的全局优化与自动分片。在SemBench Reviews和Movies数据集上，select与扩展AI查询在TPU上获得最高5.3倍延迟和9.8倍吞吐提升。该工作为数据库系统中的语义算子高效执行开辟了新架构方向。",
+          "llm_tldr": "针对AI查询中SQL与LLM推理分离执行导致PCIe数据移动瓶颈的问题，提出统一编译执行范式。该方法将混合AI查询整体编译为单一张量计算图，实现跨执行边界的全局优化与自动分片。在SemBench Reviews和Movies数据集上，select与扩展AI查询在TPU上获得最高5.3倍延迟和9.8倍吞吐提升。该工作为数据库系统中的语义算子高效执行开辟了新架构方向。",
+          "llm_tags": [
+            "query:sdl"
+          ],
+          "matched_query_tag": "query:sdl",
+          "matched_query_text": "semantic operators in database systems",
+          "matched_requirement_id": "req-2",
+          "selection_source": "carryover_cache",
+          "paper_id": "2608.10139v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2608.22980v1",
+          "source": "arxiv",
+          "title": "Hypergraph Embedding Indexing for Efficient Dense Vector Retrieval",
+          "abstract": "Dense vector retrieval has become the foundation of modern semantic search, yet existing approximate nearest neighbor (ANN) indexes treat an embedding as an indivisible point in a high-dimensional space. In this work, we propose the Hypergraph Embedding Index (HEI), a framework that instead organizes documents according to combinations of highly activated latent embedding dimensions. This formulation enables inverted-index style candidate generation while preserving the semantic ranking capabilities of dense embeddings. We further demonstrate that constructing multiple complementary hypergraphs substantially improves retrieval coverage without the combinatorial growth associated with increasing the dimensionality of a single hypergraph. Finally, we establish that the statistical properties of embedding activations strongly influence coordinate-inverted indexing efficiency, introducing \\emph{activation diversity} as a diagnostic metric governing embedding indexability in coordinate-inverted frameworks.",
+          "authors": [
+            "Kishore Konda"
+          ],
+          "primary_category": "cs.IR",
+          "categories": [
+            "cs.IR",
+            "cs.AI"
+          ],
+          "published": "2026-08-24T08:40:17+00:00",
+          "link": "https://arxiv.org/pdf/2608.22980v1",
+          "tags": [
+            "keyword:sdl",
+            "query:sdl"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "Hypergraph embedding index for efficient semantic dense retrieval",
+          "llm_evidence_cn": "基于超图嵌入索引的高效语义稠密检索",
+          "llm_evidence": "基于超图嵌入索引的高效语义稠密检索",
+          "canonical_evidence": "基于超图嵌入索引的高效语义稠密检索",
+          "llm_tldr_en": "Hypergraph Embedding Index organizes documents by combinations of activated embedding dimensions, enabling inverted-index style candidate generation for dense retrieval. Multiple complementary hypergraphs improve coverage without combinatorial explosion.",
+          "llm_tldr_cn": "稠密向量检索依赖ANN索引，但将嵌入视为不可分点限制了语义发现。超图嵌入索引(HEI)按高激活维度组合组织文档，使用倒排风格候选生成保留稠密排序能力。多个互补超图的构建在不产生组合爆炸的情况下提升检索覆盖率，为语义搜索提供了新的高效索引结构。",
+          "llm_tldr": "稠密向量检索依赖ANN索引，但将嵌入视为不可分点限制了语义发现。超图嵌入索引(HEI)按高激活维度组合组织文档，使用倒排风格候选生成保留稠密排序能力。多个互补超图的构建在不产生组合爆炸的情况下提升检索覆盖率，为语义搜索提供了新的高效索引结构。",
+          "llm_tags": [
+            "query:sdl"
+          ],
+          "matched_query_tag": "query:sdl",
+          "matched_query_text": "semantic query processing techniques",
+          "matched_requirement_id": "req-1",
+          "selection_source": "carryover_cache",
+          "paper_id": "2608.22980v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2608.22651v1",
+          "source": "arxiv",
+          "title": "Iteration Without Elaboration: A Simple ReAct Architecture Suffices for Text-to-SQL Generation",
+          "abstract": "Modern text-to-SQL systems have become increasingly elaborate, relying on schema-linking modules, retrieval-augmented prompting, candidate generation, and multi-stage refinement pipelines. While effective, these additions introduce substantial latency and engineering overhead. To this end, we present \\textbf{ReAct-SQL}, a simple yet effective zero-shot ReAct-style framework built solely on iterative reasoning and a constrained action space defined by a typed Domain-Specific Language (DSL) of 15 relational operations, rather than free-form SQL generation. The model incrementally issues DSL calls, observes compiled-SQL execution feedback, and revises its reasoning through interaction. On corrected BIRD mini-dev and EHR-SQL, ReAct-SQL achieves \\textbf{84.5\\%} and \\textbf{73.9\\%} accuracy, respectively, matching substantially more elaborate baselines while running up to $8\\times$ faster. Incremental ablations further show that iteration primarily improves grounding, while the DSL improves compositional reliability.",
+          "authors": [
+            "Jian Lu",
+            "Haiwei Yu",
+            "Raymond M Xiong",
+            "Anru Zhang",
+            "Danyang Zhuo"
+          ],
+          "primary_category": "cs.CL",
+          "categories": [
+            "cs.CL"
+          ],
+          "published": "2026-08-23T23:16:20+00:00",
+          "link": "https://arxiv.org/pdf/2608.22651v1",
+          "tags": [
+            "keyword:sdl",
+            "query:sdl"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "Converts natural language queries to SQL via ReAct reasoning",
+          "llm_evidence_cn": "通过ReAct推理将自然语言查询转换为SQL",
+          "llm_evidence": "通过ReAct推理将自然语言查询转换为SQL",
+          "canonical_evidence": "通过ReAct推理将自然语言查询转换为SQL",
+          "llm_tldr_en": "ReAct-SQL simplifies text-to-SQL to a zero-shot ReAct framework with a typed DSL of relational operations, using iterative reasoning and execution feedback. Matches elaborate systems on BIRD and EHR-SQL with lower overhead.",
+          "llm_tldr_cn": "现今text-to-SQL系统依赖schema链接、检索增强和多阶段精化，导致延迟高和工程复杂。ReAct-SQL仅用零样本ReAct迭代推理和15个关系操作符定义的动作空间，依据SQL执行反馈修正推理，避免了复杂模块。在BIRD和EHR-SQL上取得与复杂系统相当的性能，表明简单架构足以完成高质量SQL生成。",
+          "llm_tldr": "现今text-to-SQL系统依赖schema链接、检索增强和多阶段精化，导致延迟高和工程复杂。ReAct-SQL仅用零样本ReAct迭代推理和15个关系操作符定义的动作空间，依据SQL执行反馈修正推理，避免了复杂模块。在BIRD和EHR-SQL上取得与复杂系统相当的性能，表明简单架构足以完成高质量SQL生成。",
+          "llm_tags": [
+            "query:sdl"
+          ],
+          "matched_query_tag": "query:sdl",
+          "matched_query_text": "processing unstructured queries with semantic understanding",
+          "matched_requirement_id": "req-6",
+          "selection_source": "carryover_cache",
+          "paper_id": "2608.22651v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2608.15396v1",
+          "source": "arxiv",
+          "title": "Large Language Model Assisted Operational Monitoring for Battery Energy Storage System Integrated Power Distribution Networks",
+          "abstract": "Battery energy storage systems (BESS) are increasingly used in distribution networks for voltage regulation and demand response, which increases the volume and complexity of operational telemetry available to grid operators. This paper presents an AI-enabled monitoring framework that connects a large language model (LLM) interface with a structured telemetry database for BESS-integrated distribution system analysis. Operator questions are submitted in natural language and translated into validated SQL queries using predefined database schema information and approved KPI views. Retrieved measurements, including bus voltages, state of charge, active power, and reactive power, are evaluated against engineering constraints for voltage limits, BESS operation, and demand response tracking. The framework is validated using hardware-in-the-loop co-simulation data from a BESS-equipped distribution feeder operating under reactive power-based voltage control and price-driven demand response. Case studies show that the framework generates valid database queries, identifies repeated voltage violations, detects reactive power overshoot, and evaluates active-power tracking performance. The results show that LLM-assisted monitoring can connect structured grid telemetry with automated engineering assessment for BESS operation analysis.",
+          "authors": [
+            "Azmeer Akhtar",
+            "Md Fazley Rafy",
+            "Anurag K. Srivastava"
+          ],
+          "primary_category": "cs.AI",
+          "categories": [
+            "cs.AI",
+            "cs.CL",
+            "eess.SY"
+          ],
+          "published": "2026-08-15T20:00:09+00:00",
+          "link": "https://arxiv.org/pdf/2608.15396v1",
+          "tags": [
+            "keyword:sdl"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "LLM interface converts operator natural-language questions into validated SQL queries against a structured telemetry database, exemplifying LLM-powered semantic query processing.",
+          "llm_evidence_cn": "该框架用大语言模型将运维人员自然语言问题转换为经过校验的SQL查询并检索遥测数据库，体现LLM驱动的语义查询处理。",
+          "llm_evidence": "该框架用大语言模型将运维人员自然语言问题转换为经过校验的SQL查询并检索遥测数据库，体现LLM驱动的语义查询处理。",
+          "canonical_evidence": "该框架用大语言模型将运维人员自然语言问题转换为经过校验的SQL查询并检索遥测数据库，体现LLM驱动的语义查询处理。",
+          "llm_tldr_en": "Presents an AI monitoring framework where an LLM translates natural-language operator questions into validated SQL against a telemetry database for BESS-integrated distribution networks, enabling semantic querying of operational data.",
+          "llm_tldr_cn": "针对电池储能系统集成配电网中运维遥测数据量大且查询复杂的问题，提出一个AI监控框架，用大语言模型将自然语言运维问题转换为经过校验的SQL查询，并基于预设数据库模式与KPI视图执行检索。该方法使运维人员能以自然语言访问结构化遥测数据，支持电压、电量等指标的评估。实验表明该框架能有效支持配电网运行监测，是LLM驱动数据库语义查询处理的一个实际例子。",
+          "llm_tldr": "针对电池储能系统集成配电网中运维遥测数据量大且查询复杂的问题，提出一个AI监控框架，用大语言模型将自然语言运维问题转换为经过校验的SQL查询，并基于预设数据库模式与KPI视图执行检索。该方法使运维人员能以自然语言访问结构化遥测数据，支持电压、电量等指标的评估。实验表明该框架能有效支持配电网运行监测，是LLM驱动数据库语义查询处理的一个实际例子。",
+          "llm_tags": [
+            "query:sdl"
+          ],
+          "matched_query_tag": "query:sdl",
+          "matched_query_text": "LLM-powered database systems for semantic query processing",
+          "matched_requirement_id": "req-3",
+          "selection_source": "carryover_cache",
+          "paper_id": "2608.15396v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2608.17632v1",
+          "source": "arxiv",
+          "title": "DEPT: Document Embedding Preservation Tuning for Unified Query Expansion and Retrieval",
+          "abstract": "Large language models (LLMs) can both expand underspecified queries and encode text as dense representations, suggesting a unified model for query expansion and retrieval. Existing systems usually rely on prompted expansions, independently trained modules, or staged optimization, leaving generated expansions only indirectly aligned with the retrieval loss that judges them. We train a single decoder-only LLM end to end, where the same model generates the expansion and encodes both the expanded query and candidate documents. This unified setting creates a moving-target problem: retrieval supervision should improve query-side expansion, but the same update also shifts the document embeddings that serve as retrieval targets. We introduce Document Embedding Preservation Tuning (DEPT), which keeps tuned document embeddings close to cached initial embeddings while allowing retrieval gradients to pass through straight-through decoding into the generator. DEPT converts joint query--document movement into query-side adaptation against approximately stable, whitened document embeddings that support index reuse and online hard-negative mining. Experiments with Qwen3-4B-Instruct-2507 and LLaMA-3.2-3B-Instruct on five datasets in BEIR benchmark show that DEPT improves average retrieval quality over training-free, independently trained, and staged unified baselines, while ablations isolate the effects of preservation, whitening, end-to-end expansion training, and online negatives. Code is available at https://github.com/ILSparkle/DEPT.",
+          "authors": [
+            "Jingyuan Wang",
+            "Richong Zhang",
+            "Zhijie Nie",
+            "Mingxin Li",
+            "Yanzhao Zhang"
+          ],
+          "primary_category": "cs.IR",
+          "categories": [
+            "cs.IR",
+            "cs.AI"
+          ],
+          "published": "2026-08-18T10:52:08+00:00",
+          "link": "https://arxiv.org/pdf/2608.17632v1",
+          "tags": [
+            "keyword:sdl",
+            "query:sdl"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "Unified decoder-only LLM for query expansion and dense retrieval, directly addressing semantic understanding of unstructured queries.",
+          "llm_evidence_cn": "用单一解码器LLM同时完成查询扩展与稠密检索，直接面向非结构化查询的语义理解。",
+          "llm_evidence": "用单一解码器LLM同时完成查询扩展与稠密检索，直接面向非结构化查询的语义理解。",
+          "canonical_evidence": "用单一解码器LLM同时完成查询扩展与稠密检索，直接面向非结构化查询的语义理解。",
+          "llm_tldr_en": "DEPT trains a single decoder-only LLM end-to-end for joint query expansion and retrieval, preserving document embeddings while the model also updates query-side expansions.",
+          "llm_tldr_cn": "大型语言模型既能扩展模糊查询又能作为文本编码器，但现有系统把扩展和检索分阶段优化，扩展与检索损失不对齐。论文提出DEPT，对单一解码器LLM进行端到端训练，使同一模型生成扩展并编码扩展查询与文档，同时通过文档嵌入保持机制解决移动目标问题。实验表明该方法能有效提升查询扩展和检索的一致性。该工作对非结构化查询的语义处理具有直接参考价值。",
+          "llm_tldr": "大型语言模型既能扩展模糊查询又能作为文本编码器，但现有系统把扩展和检索分阶段优化，扩展与检索损失不对齐。论文提出DEPT，对单一解码器LLM进行端到端训练，使同一模型生成扩展并编码扩展查询与文档，同时通过文档嵌入保持机制解决移动目标问题。实验表明该方法能有效提升查询扩展和检索的一致性。该工作对非结构化查询的语义处理具有直接参考价值。",
+          "llm_tags": [
+            "query:sdl"
+          ],
+          "matched_query_tag": "query:sdl",
+          "matched_query_text": "processing unstructured queries with semantic understanding",
+          "matched_requirement_id": "req-6",
+          "selection_source": "carryover_cache",
+          "paper_id": "2608.17632v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2608.17795v2",
+          "source": "arxiv",
+          "title": "TraceSQL: Traceable Answerability Estimation for Reference-Free Text-to-SQL Verification",
+          "abstract": "Text-to-SQL systems are commonly evaluated using ground-truth SQL queries or reference execution results, but such supervision is unavailable at inference time in real-world deployments. This creates a critical verification problem: given only a user question, database context, and generated SQL, can a system estimate whether the generated query is likely to correctly answer the question? Recent approaches use LLMs as judge or specialized agents to inspect generated SQL, but their decisions can be difficult to trace. Outcome Reward Models (ORMs) address this by learning from execution-labeled candidate SQLs and assigning correctness scores to unseen queries, yet they still provide limited visibility into the signals behind each verification. To address this limitation, we propose TraceSQL, a lightweight and traceable verification model built on explicit diagnostic features. TraceSQL combines 67 features capturing question ambiguity, question requirements, question-schema-SQL consistency, SQL structure, and intent alignment. These signals remain available for examining which factors influence each prediction and for tracing decisions back to diagnostic evidence. On BIRD development databases, TraceSQL achieves 66.47% F1 and 64.48% ROC-AUC, compared with 61.87% F1 and 58.26% ROC-AUC for the GradeSQL-7B ORM baseline on the same generated-SQL evaluation. Feature attribution further shows that the model relies on both semantic grounding and deterministic SQL-structure signals. These results show that SQL verification can be performed with a lightweight learned model while retaining feature-level evidence for inspecting and diagnosing its predictions.",
+          "authors": [
+            "Neelesh Kumar Shukla",
+            "Debasmita Panda",
+            "Srutanik Bhaduri",
+            "Aditya Banerjee",
+            "Vasu Rangarajan",
+            "Viji Krishnamurthy"
+          ],
+          "primary_category": "cs.CL",
+          "categories": [
+            "cs.CL"
+          ],
+          "published": "2026-08-18T13:56:29+00:00",
+          "link": "https://arxiv.org/pdf/2608.17795v2",
+          "tags": [
+            "keyword:sdl",
+            "query:sdl"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "Reference-free verification of text-to-SQL queries, a key component for reliable LLM-database integration.",
+          "llm_evidence_cn": "对无参考Text-to-SQL结果进行可追踪的可回答性估计，是可靠LLM与数据库集成的重要组成部分。",
+          "llm_evidence": "对无参考Text-to-SQL结果进行可追踪的可回答性估计，是可靠LLM与数据库集成的重要组成部分。",
+          "canonical_evidence": "对无参考Text-to-SQL结果进行可追踪的可回答性估计，是可靠LLM与数据库集成的重要组成部分。",
+          "llm_tldr_en": "TraceSQL estimates whether a generated SQL query correctly answers a user question without ground truth, using traceable outcome reward models for reference-free text-to-SQL verification.",
+          "llm_tldr_cn": "实际部署中Text-to-SQL缺乏标准SQL或执行结果作为参照，验证生成查询是否正确成为挑战。论文提出TraceSQL，通过可追踪的结果奖励模型估计查询对问题的可回答性，并给出可解释的验证信号。实验表明该方法能有效评估生成SQL的可靠性，提升LLM到数据库查询的信任度。这与LLM数据库集成和语义查询处理直接相关。",
+          "llm_tldr": "实际部署中Text-to-SQL缺乏标准SQL或执行结果作为参照，验证生成查询是否正确成为挑战。论文提出TraceSQL，通过可追踪的结果奖励模型估计查询对问题的可回答性，并给出可解释的验证信号。实验表明该方法能有效评估生成SQL的可靠性，提升LLM到数据库查询的信任度。这与LLM数据库集成和语义查询处理直接相关。",
+          "llm_tags": [
+            "query:sdl"
+          ],
+          "matched_query_tag": "query:sdl",
+          "matched_query_text": "What are the approaches for integrating large language models into database query engines?",
+          "matched_requirement_id": "req-8",
+          "selection_source": "carryover_cache",
+          "paper_id": "2608.17795v2",
+          "carry_days": 1
+        },
+        {
+          "id": "2608.22772v1",
+          "source": "arxiv",
+          "title": "SPOC-SQL: Stage-wise Preference Optimization for Controllable Text-to-SQL",
+          "abstract": "Text-to-SQL aims to translate natural language questions into executable SQL queries over relational databases, requiring multi-stage structured reasoning over database schemas and query constraints. However, existing methods treat this task as single-step generation, where models optimize entire SQL sequences without targeted feedback at key decision points and lack support for interacting with and controlling the intermediate generation process. To address this issue, we propose SPOC-SQL, which decomposes Text-to-SQL into four sequential subtasks following standard SQL execution logic and designs stage-specific optimization strategies for the model to learn key decisions. Specifically, we propose the implementation of fine-grained preference optimisation at key decision points across SQL stages, with the objective of enhancing structured decision-making during query construction. Furthermore, a structured decomposition strategy is designed, facilitating stage-wise intervention and correction through explicit intermediate representations. This results in more controllable and reliable SQL generation. Experiments demonstrate that incorporating stage-wise human knowledge consistently improves performance, validating the effectiveness of stage perception controllable generation.",
+          "authors": [
+            "Yingnan Chen",
+            "Chun Ding",
+            "Tianshi Xu",
+            "Xu Yang",
+            "Si Wu"
+          ],
+          "primary_category": "cs.CL",
+          "categories": [
+            "cs.CL"
+          ],
+          "published": "2026-08-24T03:48:05+00:00",
+          "link": "https://arxiv.org/pdf/2608.22772v1",
+          "tags": [
+            "keyword:sdl",
+            "query:sdl"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "Presents an LLM-based stage-wise optimization method for text-to-SQL, directly addressing integration of LLMs into database query generation engines.",
+          "llm_evidence_cn": "提出基于大语言模型的分阶段优化方法来生成SQL，直接涉及将LLM集成到数据库查询生成引擎。",
+          "llm_evidence": "提出基于大语言模型的分阶段优化方法来生成SQL，直接涉及将LLM集成到数据库查询生成引擎。",
+          "canonical_evidence": "提出基于大语言模型的分阶段优化方法来生成SQL，直接涉及将LLM集成到数据库查询生成引擎。",
+          "llm_tldr_en": "SPOC-SQL decomposes text-to-SQL into four sequential subtasks and applies stage-specific preference optimization, enabling fine-grained control and better SQL generation than single-step LLM methods.",
+          "llm_tldr_cn": "针对文本到SQL任务中现有方法把整条SQL生成当作单步优化、缺少关键决策点反馈的问题，提出SPOC-SQL将生成过程按标准SQL执行逻辑拆分为四个子任务，并为每个阶段设计细粒度偏好优化。模型因此能在关键决策点获得针对性训练，提升对中间生成过程的控制能力。实验表明该方法在可控性和SQL生成质量上优于单步生成方法，为LLM接入关系数据库查询引擎提供了新思路。",
+          "llm_tldr": "针对文本到SQL任务中现有方法把整条SQL生成当作单步优化、缺少关键决策点反馈的问题，提出SPOC-SQL将生成过程按标准SQL执行逻辑拆分为四个子任务，并为每个阶段设计细粒度偏好优化。模型因此能在关键决策点获得针对性训练，提升对中间生成过程的控制能力。实验表明该方法在可控性和SQL生成质量上优于单步生成方法，为LLM接入关系数据库查询引擎提供了新思路。",
+          "llm_tags": [
+            "query:sdl"
+          ],
+          "matched_query_tag": "query:sdl",
+          "matched_query_text": "What are the approaches for integrating large language models into database query engines?",
+          "matched_requirement_id": "req-8",
+          "selection_source": "carryover_cache",
+          "paper_id": "2608.22772v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2608.27017v2",
+          "source": "arxiv",
+          "title": "ProRetrieval: Learning to Orchestrate Hybrid Search via Executable Program Synthesis",
+          "abstract": "Real-world retrieval often composes structured constraints with semantic intents over text and images through arbitrary Boolean logic. Existing hybrid pipelines such as reciprocal rank fusion or self-querying retrievers admit only a fixed form of composition, while recent reinforcement-learning retrievers train the language model as a query generator for a single backend, leaving the orchestration of heterogeneous retrieval paths outside its action space. We propose ProRetrieval, which recasts the language model as a retrieval orchestrator: given a natural-language query, it synthesizes an executable program in a hybrid DSL interleaving SQL operators over structured fields with vector-retrieval primitives over text and images, with SQL itself providing the logical algebra that fuses heterogeneous candidate sets. We train Qwen3-4B with GRPO and DAPO under a hierarchical four-term reward, and evaluate on two new benchmarks built from Amazon products and Enron email. Our 4B model surpasses GPT-5.5 (Hit@1 0.81 vs. 0.69 on e-commerce; 0.91 vs. 0.86 on email) and Claude Opus 4.7 and a comprehensive suite of retrieval, LLM-augmented, structured-query, and graph-based baselines. Code: https://anonymous.4open.science/r/ProRetrieval/; data: https://huggingface.co/datasets/anonymous-7219/ProRetrieval.",
+          "authors": [
+            "Chengsong You",
+            "Zhen Sun",
+            "Yunhai Hu",
+            "Junwei Zhou",
+            "Xiaoyu Cao",
+            "Binyu Li",
+            "Ziyan Zhao",
+            "Weiyao Wang",
+            "Liren Lu",
+            "Zhijie Ye",
+            "Yumo Cao",
+            "Yitao Long",
+            "Yiwei Xu",
+            "Qiyi Jiang",
+            "Xuanyi Fu",
+            "Yufan Chen",
+            "Yilun Li",
+            "Rongkang Xiong",
+            "Yiran Zou",
+            "Nan Du"
+          ],
+          "primary_category": "cs.IR",
+          "categories": [
+            "cs.IR"
+          ],
+          "published": "2026-08-27T12:03:30+00:00",
+          "link": "https://arxiv.org/pdf/2608.27017v2",
+          "tags": [
+            "keyword:sdl",
+            "query:sdl"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "synthesizes executable hybrid search programs combining SQL operators with vector retrieval, a semantic query processing technique",
+          "llm_evidence_cn": "合成SQL算子与向量检索结合的混合检索程序，属于语义查询处理技术",
+          "llm_evidence": "合成SQL算子与向量检索结合的混合检索程序，属于语义查询处理技术",
+          "canonical_evidence": "合成SQL算子与向量检索结合的混合检索程序，属于语义查询处理技术",
+          "llm_tldr_en": "ProRetrieval recasts the language model as a retrieval orchestrator, synthesizing executable programs that interleave SQL operators and vector retrieval over text and images to handle arbitrary Boolean compositions in hybrid search.",
+          "llm_tldr_cn": "真实检索常需将结构化约束与语义意图组合成任意布尔逻辑，而现有混合检索只支持固定组合形式。ProRetrieval把语言模型从查询生成器转变为检索编排器：给定自然语言查询，它合成一个可执行程序，用DSL交错编排结构化字段上的SQL算子和文本/图像的向量检索原语。该方法扩展了检索系统的动作空间，支持更灵活的混合语义查询。实验结果展示了它在查询编排上的优势。这项工作为语义查询处理提供了基于程序合成的通用范式。",
+          "llm_tldr": "真实检索常需将结构化约束与语义意图组合成任意布尔逻辑，而现有混合检索只支持固定组合形式。ProRetrieval把语言模型从查询生成器转变为检索编排器：给定自然语言查询，它合成一个可执行程序，用DSL交错编排结构化字段上的SQL算子和文本/图像的向量检索原语。该方法扩展了检索系统的动作空间，支持更灵活的混合语义查询。实验结果展示了它在查询编排上的优势。这项工作为语义查询处理提供了基于程序合成的通用范式。",
+          "llm_tags": [
+            "query:sdl"
+          ],
+          "matched_query_tag": "query:sdl",
+          "matched_query_text": "semantic query processing techniques",
+          "matched_requirement_id": "req-1",
+          "selection_source": "carryover_cache",
+          "paper_id": "2608.27017v2",
+          "carry_days": 1
+        },
+        {
+          "id": "2608.11644v2",
+          "source": "arxiv",
+          "title": "Guided Table Retrieval for Structured Data Search",
+          "abstract": "Answering natural language questions over structured databases requires identifying the relevant tables and determining how to join them---a task that demands both schema knowledge and semantic understanding of the user's intent. We present guided table retrieval, a four-phase pipeline that combines deterministic grounding via hash-based predictors, structural exploration of join-graph reachability, LLM-powered disambiguation of sources and targets, and algorithmic merging into minimal, topologically ordered join trees. By decomposing the problem into phases with distinct responsibilities--- determinism, coverage, semantic reasoning, and coherence--- the pipeline avoids the brittleness of end-to-end LLM approaches while leveraging LLMs where their contextual judgment is most needed. We evaluate on BIRD-DEV and the enterprise-scale BEAVER benchmark, achieving 94% and 70% precision respectively, with 92% and 53% F1---substantially outperforming existing baselines on precision and F1 while producing exact join trees that can be directly consumed by downstream query compilers.",
+          "authors": [
+            "Alekh Jindal",
+            "Jyoti Pandey",
+            "Christina Pavlopoulou",
+            "Ronith PR",
+            "Sharath Prakash",
+            "Shi Qiao",
+            "Shivani Tripathi",
+            "Wangda Zhang"
+          ],
+          "primary_category": "cs.DB",
+          "categories": [
+            "cs.DB"
+          ],
+          "published": "2026-08-12T04:43:17+00:00",
+          "link": "https://arxiv.org/pdf/2608.11644v2",
+          "tags": [
+            "keyword:sdl",
+            "query:sdl"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "natural language query over databases with LLM-powered table retrieval and join discovery, a semantic query processing pipeline",
+          "llm_evidence_cn": "基于LLM的自然语言数据库查询表格检索与连接发现，语义查询处理流水线",
+          "llm_evidence": "基于LLM的自然语言数据库查询表格检索与连接发现，语义查询处理流水线",
+          "canonical_evidence": "基于LLM的自然语言数据库查询表格检索与连接发现，语义查询处理流水线",
+          "llm_tldr_en": "Guided table retrieval decomposes natural language table search into four phases: deterministic grounding, join-graph exploration, LLM disambiguation, and minimal join tree merging, avoiding brittleness of end-to-end LLM approaches.",
+          "llm_tldr_cn": "在结构化数据库上回答自然语言问题需要识别相关表并确定连接方式，这对模式知识和语义理解都有要求。本文提出引导式表格检索流水线，分为四个阶段：基于哈希的确定性接地、连接图可达性结构探索、LLM辅助的源/目标消歧，以及算法合并为最小拓扑排序连接树。该分解将确定性与语义推理分离，避免了端到端LLM方法的脆弱性。实验表明这一方法能有效进行结构化数据语义搜索。该流水线为LLM驱动的数据库查询提供了一种稳健实现。",
+          "llm_tldr": "在结构化数据库上回答自然语言问题需要识别相关表并确定连接方式，这对模式知识和语义理解都有要求。本文提出引导式表格检索流水线，分为四个阶段：基于哈希的确定性接地、连接图可达性结构探索、LLM辅助的源/目标消歧，以及算法合并为最小拓扑排序连接树。该分解将确定性与语义推理分离，避免了端到端LLM方法的脆弱性。实验表明这一方法能有效进行结构化数据语义搜索。该流水线为LLM驱动的数据库查询提供了一种稳健实现。",
+          "llm_tags": [
+            "query:sdl"
+          ],
+          "matched_query_tag": "query:sdl",
+          "matched_query_text": "semantic query processing techniques",
+          "matched_requirement_id": "req-1",
+          "selection_source": "carryover_cache",
+          "paper_id": "2608.11644v2",
+          "carry_days": 1
+        },
+        {
+          "id": "2608.13926v1",
+          "source": "arxiv",
+          "title": "Never the Number: Structural Abstention for AI Systems Whose Answers Are Consumed as Fact",
+          "abstract": "Large language models have made natural language interfaces to databases (NLIDB) newly credible, but LLM text-to-SQL systems fail in a way that matters for deployment: a hallucinated column or a mis-aggregated total yields a fluent wrong answer, indistinguishable at the point of use from a right one. Where the consumer cannot inspect the generated query, as in enterprise AI deployments and operational dashboards, and increasingly where the consumer is a tool-using agent rather than a person, accuracy alone is insufficient: nothing marks which answers to distrust. This is a reliability problem before it is an accuracy problem.   We propose an architectural pattern for such systems, a trusted kernel with a generative shell, resting on one invariant: a component that can fabricate may influence which question the system answers, never which value it returns. A generative shell interprets underspecified input and phrases replies; a deterministic kernel matches fully specified questions against a bounded set of answerable question shapes and compiles them to queries by deterministic execution. The two meet at a confirmation the user reads before any value is computed, and requests the kernel cannot express are declined rather than approximated. We call this structural abstention, and distinguish it from the statistical abstention of selective prediction and calibrated confidence: refusal here needs no confidence estimate, because unanswerable requests are unrepresentable.   We specify the pattern implementation-independently, give a five-decision recipe and work it across three domains, extend the invariant from returned values to the actions of agentic systems, and report a two-year production case study alongside two generative alternatives, a fine-tuned parser and a tool-retrieval agent. We close against enterprise and reliability benchmarks published since.",
+          "authors": [
+            "Zhelun",
+            "Wu"
+          ],
+          "primary_category": "cs.AI",
+          "categories": [
+            "cs.AI",
+            "cs.CL",
+            "cs.DB"
+          ],
+          "published": "2026-08-14T03:53:21+00:00",
+          "link": "https://arxiv.org/pdf/2608.13926v1",
+          "tags": [
+            "keyword:sdl",
+            "query:sdl"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "Approach for integrating LLMs into database query interfaces with abstention",
+          "llm_evidence_cn": "将LLM集成到数据库查询接口并支持弃权的方案",
+          "llm_evidence": "将LLM集成到数据库查询接口并支持弃权的方案",
+          "canonical_evidence": "将LLM集成到数据库查询接口并支持弃权的方案",
+          "llm_tldr_en": "A trusted-kernel/generative-shell architectural pattern lets LLM text-to-SQL systems structurally abstain from answering when the generated query may be wrong, addressing reliability before accuracy.",
+          "llm_tldr_cn": "大语言模型让自然语言数据库接口变得可行，但文本到SQL系统一旦产生幻觉列或聚合错误，就会给出流畅却不可信的答案，而使用者无法检查查询。本文提出‘可信内核+生成外壳’的架构模式，为部署环境中的系统增加结构性弃权能力，让不可靠的答案在消费前被标记。作者认为这在准确率之前首先是可靠性问题，该模式可用于企业AI与代理场景。",
+          "llm_tldr": "大语言模型让自然语言数据库接口变得可行，但文本到SQL系统一旦产生幻觉列或聚合错误，就会给出流畅却不可信的答案，而使用者无法检查查询。本文提出‘可信内核+生成外壳’的架构模式，为部署环境中的系统增加结构性弃权能力，让不可靠的答案在消费前被标记。作者认为这在准确率之前首先是可靠性问题，该模式可用于企业AI与代理场景。",
+          "llm_tags": [
+            "query:sdl"
+          ],
+          "matched_query_tag": "query:sdl",
+          "matched_query_text": "What are the approaches for integrating large language models into database query engines?",
+          "matched_requirement_id": "req-8",
+          "selection_source": "carryover_cache",
+          "paper_id": "2608.13926v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2608.22830v1",
+          "source": "arxiv",
+          "title": "Beyond the Harness: End-to-End Optimization of Context Artifacts for Enterprise Text-to-SQL",
+          "abstract": "Deploying LLMs for enterprise Text-to-SQL is bottlenecked less by the model than by what context reaches it: business logic spans thousands of tables, and no model can ingest a full catalog at once. We argue that the most effective place to intervene is therefore the \\emph{knowledge-base context} the model consumes, and that this context should be \\emph{constructed} from historical usage rather than tuned for as a fixed input. Using a query-DAG decomposition--the same family of intermediates that enterprise benchmarks like BEAVER annotate, here recovered from production SQL--we compare the value of oracle query graphs versus retrieved knowledge-base context. In this ablation, retrieved knowledge-base context provides the largest marginal improvement when added to the full oracle graph. Building on this, we optimize a distillation procedure that turns historical query profiles into reusable SQL reference cards. On a benchmark of 5176 production queries from a major online retailer, optimizing these context artifacts yields larger gains (${\\sim}12$--$25\\%$ AST similarity) than optimizing the retrieval harness (${\\sim}3$--$12\\%$). On the public BEAVER benchmark, which lacks the production-usage signals available in our internal setting, the picture is more mixed: table cards alone perform about the same as raw historical SQL. The best optimized variant retrieves both cards and raw SQL, scoring $9.00\\%$ versus $6.33\\%$ (p-value $0.12$) for the comparable baseline on a held-out $N{=}300$ subset, using retrieved context and harness changes but no agentic loop.",
+          "authors": [
+            "Kate Gwimm",
+            "Carson Eisenach"
+          ],
+          "primary_category": "cs.AI",
+          "categories": [
+            "cs.AI",
+            "cs.LG"
+          ],
+          "published": "2026-08-24T05:47:55+00:00",
+          "link": "https://arxiv.org/pdf/2608.22830v1",
+          "tags": [
+            "keyword:sdl",
+            "query:sdl"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "context optimization for enterprise Text-to-SQL, key for LLM-powered database query processing",
+          "llm_evidence_cn": "面向企业文本到SQL的上下文优化，对LLM驱动的数据库查询处理至关重要",
+          "llm_evidence": "面向企业文本到SQL的上下文优化，对LLM驱动的数据库查询处理至关重要",
+          "canonical_evidence": "面向企业文本到SQL的上下文优化，对LLM驱动的数据库查询处理至关重要",
+          "llm_tldr_en": "Shows that retrieved knowledge-base context is the main bottleneck in enterprise Text-to-SQL, and proposes constructing context artifacts from historical usage, with query-DAG decomposition for end-to-end optimization.",
+          "llm_tldr_cn": "企业级LLM文本到SQL的部署瓶颈往往不在模型，而在送入模型的上下文：业务逻辑横跨数千张表。论文主张知识库上下文应基于历史用法主动构建而非固定输入，并使用查询DAG分解恢复生产SQL中的中间结构。对照实验表明，检索到的知识库上下文相比oracle查询图带来最大收益。该工作为面向大规模企业模式的语义查询处理提供了有效的上下文工程化方法。",
+          "llm_tldr": "企业级LLM文本到SQL的部署瓶颈往往不在模型，而在送入模型的上下文：业务逻辑横跨数千张表。论文主张知识库上下文应基于历史用法主动构建而非固定输入，并使用查询DAG分解恢复生产SQL中的中间结构。对照实验表明，检索到的知识库上下文相比oracle查询图带来最大收益。该工作为面向大规模企业模式的语义查询处理提供了有效的上下文工程化方法。",
+          "llm_tags": [
+            "query:sdl"
+          ],
+          "matched_query_tag": "query:sdl",
+          "matched_query_text": "LLM-powered database systems for semantic query processing",
+          "matched_requirement_id": "req-3",
+          "selection_source": "carryover_cache",
+          "paper_id": "2608.22830v1",
+          "carry_days": 1
+        },
+        {
+          "id": "2608.13200v2",
+          "source": "arxiv",
+          "title": "GEM: A Generative Embedding Model Bridging Reasoning and Retrieval",
+          "abstract": "Modern LLMs excel at reasoning and instruction following, enabling users to express complex and diverse information needs. However, conventional retrievers largely rely on surface-level matching between queries and documents, resulting in a growing gap between how users express their needs and how retrievers interpret them. In this paper, we present GEM, a generative embedding model that augments retrieval through its own knowledge by explicitly reasoning about user intent and relevance criteria. GEM unifies generation and embedding within a single model: it first reasons over the query, then appends an embedding token to encode the enriched context for retrieval. Evaluated on reasoning-intensive and instruction-following retrieval tasks, GEM demonstrates the effectiveness of its reasoning-augmented retrieval, outperforming its non-reasoning variant and matching baselines using substantially larger models. Furthermore, GEM's generative nature allows test-time compute scaling via prompting to further enhance retrieval performance. Our code is available at: https://anonymous.4open.science/r/GEM.",
+          "authors": [
+            "Zhili Shen",
+            "Craig Macdonald"
+          ],
+          "primary_category": "cs.CL",
+          "categories": [
+            "cs.CL",
+            "cs.AI",
+            "cs.IR"
+          ],
+          "published": "2026-08-13T13:03:49+00:00",
+          "link": "https://arxiv.org/pdf/2608.13200v2",
+          "tags": [
+            "keyword:sdl",
+            "query:sdl"
+          ],
+          "llm_score": 8.0,
+          "llm_evidence_en": "explicitly reasons over query intent to enrich retrieval embeddings",
+          "llm_evidence_cn": "显式推理查询意图以增强检索嵌入",
+          "llm_evidence": "显式推理查询意图以增强检索嵌入",
+          "canonical_evidence": "显式推理查询意图以增强检索嵌入",
+          "llm_tldr_en": "GEM unifies generation and embedding in one LLM, first reasoning over the query and then appending an embedding token to encode enriched context for retrieval, improving reasoning-intensive and instruction-following retrieval tasks.",
+          "llm_tldr_cn": "针对传统检索仅依赖表面匹配、难以理解用户复杂语义的问题，提出生成式嵌入模型GEM。GEM在单个模型中先对查询进行显式推理，再附加嵌入令牌编码增强上下文，使检索能捕捉意图与相关性标准。在推理密集和指令跟随检索任务上表现优异，验证了生成与嵌入统一能显著提升语义检索质量。",
+          "llm_tldr": "针对传统检索仅依赖表面匹配、难以理解用户复杂语义的问题，提出生成式嵌入模型GEM。GEM在单个模型中先对查询进行显式推理，再附加嵌入令牌编码增强上下文，使检索能捕捉意图与相关性标准。在推理密集和指令跟随检索任务上表现优异，验证了生成与嵌入统一能显著提升语义检索质量。",
+          "llm_tags": [
+            "query:sdl"
+          ],
+          "matched_query_tag": "query:sdl",
+          "matched_query_text": "processing unstructured queries with semantic understanding",
+          "matched_requirement_id": "req-6",
+          "selection_source": "carryover_cache",
+          "paper_id": "2608.13200v2",
+          "carry_days": 1
+        }
+      ]
+    }
+  }
 }

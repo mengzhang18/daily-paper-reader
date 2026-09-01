@@ -1,0 +1,345 @@
+{
+  "date": "20260803-20260901",
+  "date_label": "2026-08-03 ~ 2026-09-01",
+  "generated_at": "2026-09-01 02:17:07 UTC",
+  "recommend_exists": true,
+  "run_count": 1,
+  "papers": [
+    {
+      "paper_id": "2608.06677v1",
+      "route": "20260803-20260901/2608.06677v1-from-interpretation-to-compilation-a-compilation-based-execution-engine-for-semantic-operator-systems",
+      "title": "From Interpretation to Compilation: A Compilation-Based Execution Engine for Semantic Operator Systems",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sdl"
+        }
+      ],
+      "score": 10.0,
+      "evidence": "面向语义算子系统的编译执行引擎",
+      "first_seen_at": "2026-09-01 02:17:07 UTC",
+      "updated_at": "2026-09-01 02:17:07 UTC"
+    },
+    {
+      "paper_id": "2608.20630v1",
+      "route": "20260803-20260901/2608.20630v1-sage-a-unified-algebra-and-self-adaptive-execution-for-ai-functions-in-sql",
+      "title": "SAGE: A Unified Algebra and Self-Adaptive Execution for AI Functions in SQL",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sdl"
+        }
+      ],
+      "score": 10.0,
+      "evidence": "SQL中语义AI函数的统一代数与自适应执行",
+      "first_seen_at": "2026-09-01 02:17:07 UTC",
+      "updated_at": "2026-09-01 02:17:07 UTC"
+    },
+    {
+      "paper_id": "2608.06331v1",
+      "route": "20260803-20260901/2608.06331v1-tytan-interactive-neurosymbolic-construction-of-analytic-semantic-schemas-from-relational-data",
+      "title": "Tytan: Interactive Neurosymbolic Construction of Analytic Semantic Schemas from Relational Data",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sdl"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "用LLM语义推断从关系数据自动构造分析语义模式，支撑语义查询接口。",
+      "first_seen_at": "2026-09-01 02:17:07 UTC",
+      "updated_at": "2026-09-01 02:17:07 UTC"
+    },
+    {
+      "paper_id": "2608.09260v1",
+      "route": "20260803-20260901/2608.09260v1-safeql-search-based-refinement-for-safe-and-efficient-llm-based-text-to-sql",
+      "title": "SafeQL: Search-based Refinement for Safe and Efficient LLM-based Text-to-SQL",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sdl"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "SafeQL利用数据库反馈引导LLM文本到SQL细化，直接改进语义查询处理",
+      "first_seen_at": "2026-09-01 02:17:07 UTC",
+      "updated_at": "2026-09-01 02:17:07 UTC"
+    },
+    {
+      "paper_id": "2608.09532v1",
+      "route": "20260803-20260901/2608.09532v1-carnot-interpretable-interactive-and-optimized-execution-of-deep-research-queries",
+      "title": "Carnot: Interpretable, Interactive, and Optimized Execution of Deep Research Queries",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sdl"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "明确面向语义算子，将自然语言请求编译为物理执行图",
+      "first_seen_at": "2026-09-01 02:17:07 UTC",
+      "updated_at": "2026-09-01 02:17:07 UTC"
+    },
+    {
+      "paper_id": "2608.11889v1",
+      "route": "20260803-20260901/2608.11889v1-dextersql-deep-schema-exploration-and-rule-based-correction-for-text-to-sql-generation",
+      "title": "DexterSQL: Deep Schema Exploration and Rule-based Correction for Text-to-SQL Generation",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sdl"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "深度模式探索与规则修正改进Text-to-SQL语义查询生成。",
+      "first_seen_at": "2026-09-01 02:17:07 UTC",
+      "updated_at": "2026-09-01 02:17:07 UTC"
+    },
+    {
+      "paper_id": "2608.13384v1",
+      "route": "20260803-20260901/2608.13384v1-structure-then-query-enabling-precise-analytical-queries-over-unstructured-documents",
+      "title": "Structure then Query: Enabling Precise Analytical Queries over Unstructured Documents",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sdl"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "对非结构化文档进行语义理解和结构化以支持精确查询",
+      "first_seen_at": "2026-09-01 02:17:07 UTC",
+      "updated_at": "2026-09-01 02:17:07 UTC"
+    },
+    {
+      "paper_id": "2608.13612v1",
+      "route": "20260803-20260901/2608.13612v1-semplan-benchmarking-structured-semantic-planning-for-llm-based-queries-over-enterprise-data",
+      "title": "SemPlan: Benchmarking Structured Semantic Planning for LLM-Based Queries over Enterprise Data",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sdl"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "评测LLM企业查询的多种架构，比较SQL、工具代理与语义规划集成。",
+      "first_seen_at": "2026-09-01 02:17:07 UTC",
+      "updated_at": "2026-09-01 02:17:07 UTC"
+    },
+    {
+      "paper_id": "2608.16663v1",
+      "route": "20260803-20260901/2608.16663v1-bounded-semantic-planning-and-deterministic-compilation-for-reliable-enterprise-text-to-sql",
+      "title": "Bounded Semantic Planning and Deterministic Compilation for Reliable Enterprise Text-to-SQL",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sdl"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "基于有界语义规划的可靠大模型文本到SQL",
+      "first_seen_at": "2026-09-01 02:17:07 UTC",
+      "updated_at": "2026-09-01 02:17:07 UTC"
+    },
+    {
+      "paper_id": "2608.27244v1",
+      "route": "20260803-20260901/2608.27244v1-compositional-online-learning-for-semantic-data-processing-systems",
+      "title": "Compositional Online Learning for Semantic Data Processing Systems",
+      "section": "deep",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sdl"
+        }
+      ],
+      "score": 9.0,
+      "evidence": "面向LLM语义数据处理系统的组合在线学习与查询执行优化",
+      "first_seen_at": "2026-09-01 02:17:07 UTC",
+      "updated_at": "2026-09-01 02:17:07 UTC"
+    },
+    {
+      "paper_id": "2608.04945v1",
+      "route": "20260803-20260901/2608.04945v1-a-general-sufficient-condition-for-rewriting-horn-alchi-atomic-queries-into-gql",
+      "title": "A General Sufficient Condition for Rewriting Horn-ALCHI Atomic Queries into GQL",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sdl"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向语义查询处理的本体中介查询重写为GQL",
+      "first_seen_at": "2026-09-01 02:17:07 UTC",
+      "updated_at": "2026-09-01 02:17:07 UTC"
+    },
+    {
+      "paper_id": "2608.05497v1",
+      "route": "20260803-20260901/2608.05497v1-excise-query-side-exclusion-for-late-interaction-retrieval",
+      "title": "EXCISE: Query-Side Exclusion for Late-Interaction Retrieval",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sdl"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "查询端排除方法，为后期交互检索实现非结构化查询的语义过滤。",
+      "first_seen_at": "2026-09-01 02:17:07 UTC",
+      "updated_at": "2026-09-01 02:17:07 UTC"
+    },
+    {
+      "paper_id": "2608.09214v1",
+      "route": "20260803-20260901/2608.09214v1-akasicdb-demonstrating-omni-rag-with-a-unified-vector-graph-relational-dbms",
+      "title": "AkasicDB: Demonstrating Omni RAG with a Unified Vector-Graph-Relational DBMS",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sdl"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "原生统一向量-图-关系DBMS，支撑LLM驱动的RAG语义查询工作流。",
+      "first_seen_at": "2026-09-01 02:17:07 UTC",
+      "updated_at": "2026-09-01 02:17:07 UTC"
+    },
+    {
+      "paper_id": "2608.09588v1",
+      "route": "20260803-20260901/2608.09588v1-mdb-link-hierarchical-schema-linking-for-multi-database-text-to-sql",
+      "title": "MDB-Link: Hierarchical Schema Linking for Multi-Database Text-to-SQL",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sdl"
+        }
+      ],
+      "score": 8.0,
+      "evidence": "面向多数据库文本到SQL的层级模式连接框架，使用LLM进行数据库路由和模式落地，支持LLM驱动的数据库语义查询处理。",
+      "first_seen_at": "2026-09-01 02:17:07 UTC",
+      "updated_at": "2026-09-01 02:17:07 UTC"
+    },
+    {
+      "paper_id": "2608.03794v1",
+      "route": "20260803-20260901/2608.03794v1-evaluating-llms-in-database-scenarios-a-lifecycle-benchmark-for-assessing-their-potential-in-core-database-tasks",
+      "title": "Evaluating LLMs in Database Scenarios: A Lifecycle Benchmark for Assessing Their Potential in Core Database Tasks",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sdl"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "评估LLM在数据库全生命周期中的能力，为将LLM集成进查询引擎提供参考",
+      "first_seen_at": "2026-09-01 02:17:07 UTC",
+      "updated_at": "2026-09-01 02:17:07 UTC"
+    },
+    {
+      "paper_id": "2608.07700v1",
+      "route": "20260803-20260901/2608.07700v1-towards-researcher-agents-for-knowledge-graph-question-answering",
+      "title": "Towards Researcher Agents for Knowledge-Graph Question Answering",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sdl"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "用于大模型驱动语义查询处理的智能体文本到SPARQL",
+      "first_seen_at": "2026-09-01 02:17:07 UTC",
+      "updated_at": "2026-09-01 02:17:07 UTC"
+    },
+    {
+      "paper_id": "2608.10216v1",
+      "route": "20260803-20260901/2608.10216v1-similarity-gates-approve-reversals-a-validity-audit-of-embedding-cosine-thresholds-in-agent-systems",
+      "title": "Similarity Gates Approve Reversals: A Validity Audit of Embedding-Cosine Thresholds in Agent Systems",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sdl"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "审计智能体系统中用于语义过滤的嵌入余弦阈值",
+      "first_seen_at": "2026-09-01 02:17:07 UTC",
+      "updated_at": "2026-09-01 02:17:07 UTC"
+    },
+    {
+      "paper_id": "2608.12129v1",
+      "route": "20260803-20260901/2608.12129v1-sag-sql-retrieval-augmented-generation-with-query-time-dynamic-hyperedges",
+      "title": "SAG: SQL-Retrieval Augmented Generation with Query-Time Dynamic Hyperedges",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sdl"
+        }
+      ],
+      "score": 7.0,
+      "evidence": "SAG用SQL检索事件-实体索引并在查询时构造动态超边，是对非结构化语料的语义结构化查询方法。",
+      "first_seen_at": "2026-09-01 02:17:07 UTC",
+      "updated_at": "2026-09-01 02:17:07 UTC"
+    },
+    {
+      "paper_id": "2608.12407v1",
+      "route": "20260803-20260901/2608.12407v1-from-relational-and-property-graph-data-to-large-language-models",
+      "title": "From Relational and Property Graph Data to Large Language Models",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sdl"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "将关系模型与属性图模型统一后向LLM提供知识模型，展示了一种LLM与数据库结合路径。",
+      "first_seen_at": "2026-09-01 02:17:07 UTC",
+      "updated_at": "2026-09-01 02:17:07 UTC"
+    },
+    {
+      "paper_id": "2608.15145v1",
+      "route": "20260803-20260901/2608.15145v1-acts-sql-agentic-and-critic-oriented-tree-structured-sql-correctness-with-large-language-models",
+      "title": "ACTS-SQL: Agentic and Critic-Oriented Tree-Structured SQL Correctness with Large Language Models",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sdl"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "面向Text-to-SQL管线的基于LLM的树结构SQL纠错",
+      "first_seen_at": "2026-09-01 02:17:07 UTC",
+      "updated_at": "2026-09-01 02:17:07 UTC"
+    },
+    {
+      "paper_id": "2608.15389v1",
+      "route": "20260803-20260901/2608.15389v1-agentic-sql-revisited-autonomy-based-taxonomy-and-empirical-benchmark-analysis-for-llm-text-to-sql",
+      "title": "Agentic-SQL Revisited: Autonomy-Based Taxonomy and Empirical Benchmark Analysis for LLM Text-to-SQL",
+      "section": "quick",
+      "tags": [
+        {
+          "kind": "query",
+          "label": "sdl"
+        }
+      ],
+      "score": 6.0,
+      "evidence": "对LLM Text-to-SQL系统的分类与实证分析，与LLM驱动的数据库语义查询处理相关",
+      "first_seen_at": "2026-09-01 02:17:07 UTC",
+      "updated_at": "2026-09-01 02:17:07 UTC"
+    }
+  ]
+}

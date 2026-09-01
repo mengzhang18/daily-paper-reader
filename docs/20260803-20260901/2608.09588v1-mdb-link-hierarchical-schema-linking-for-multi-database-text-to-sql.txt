@@ -1,0 +1,538 @@
+Title: MDB-Link: Hierarchical Schema Linking for Multi-Database Text-to-SQL
+
+URL Source: https://arxiv.org/pdf/2608.09588v1
+
+Published Time: Tue, 11 Aug 2026 02:43:05 GMT
+
+Number of Pages: 19
+
+Markdown Content:
+# MDB-Link: Hierarchical Schema Linking for Multi-Database Text-to-SQL 
+
+Beiyu Xu and Zhenyu Wu and Jiaoyan Chen and Riza theresa Batista-navarro 
+
+University of Manchester Faculty of Science and Engineering Department of Computer Science 
+
+Abstract 
+
+Traditional Text-to-SQL research and bench-marks assume a known target database, over-looking settings in which a query must be routed within a large, heterogeneous database collection. We therefore study schema link-ing in a multi-database setting, where the sys-tem must first locate the target database and then construct a compact, SQL-relevant schema for generation. We propose MDB-Link, a hi-erarchical schema-linking framework that re-trieves question-relevant columns from a global index, aggregates retrieval evidence to short-list databases, and uses a budget-aware large language model (LLM) for database rerank-ing, table selection, and column grounding. With Qwen2.5-14B, MDB-Link outperforms LinkAlign on MMQA, Spider2-Snow, and BIRD-dev in database localization and column selection while producing schema subsets close in size to the gold schemas. Exact match im-proves from 16.88 to 51.41 on MMQA, 2.50 to 9.17 on Spider2-Snow, and 12.52 to 38.01 on BIRD-dev. MDB-Link also runs faster than LinkAlign and AutoLink, demonstrating the effectiveness of hierarchical schema reduction for downstream SQL generation. 
+
+1 Introduction 
+
+Traditional Text-to-SQL research and benchmarks generally assume that each question is paired with its target database, confining SQL generation to a known schema (Wang et al., 2020; Li et al., 2023b). Although this setup supports controlled evaluation, it omits database localization: in enterprise data platforms, the target database may be unspecified and must be identified from a large, heterogeneous collection at inference time (Lei et al., 2025; Wu et al., 2025). In this setting, a system must de-termine not only how to express a question in SQL, but also where the required data reside and which schema elements are needed. We refer to this upstream task as multi-database schema link-ing (Wang et al., 2025). This task has a hierarchical structure: a system must first localize a database from a large collection, then identify the relevant tables, and finally ground the columns needed for SQL generation. These decisions are interdepen-dent: choosing the wrong database invalidates all downstream selections, while omitting a bridge ta-ble or join key can prevent correct SQL generation even when other selected columns are semantically related. The central challenge is therefore to nar-row the candidates at each level without removing schema items required by the correct query or ex-ceeding the context budget of the downstream SQL generator. Existing strategies expose complementary limi-tations. Full-schema prompting can be effective for small schemas, but its context cost and ex-posure to irrelevant schema elements grow with the number and size of candidate databases (Pour-reza and Rafiei, 2023; Sun et al., 2023; Gao et al., 2023). Retrieval and ranking methods reduce this burden, yet flat item scoring may overlook struc-turally necessary tables or columns that are only weakly expressed in the question (Wang et al., 2020; Li et al., 2023a; Katsogiannis-Meimarakis and Koutrika, 2023). Agentic exploration can re-cover additional schema evidence, but broad ex-pansion may increase latency and schema noise (Wang et al., 2025, 2026). These trade-offs mo-tivate a method that combines explicit database localization with structured, budget-aware schema reduction. To address this need, we propose MDB-Link , a hierarchical framework that uses question-relevant column evidence from a global index to local-ize candidate databases and then narrows the pre-dicted database through table selection and col-umn grounding. A budget-aware schema context construction strategy preserves relational metadata while limiting the schema context passed to the LLM. By separating these decisions, MDB-Link 1arXiv:2608.09588v1 [cs.CL] 10 Aug 2026 aims to avoid both exhaustive full-schema prompt-ing and unconstrained schema expansion. Our contributions are summarized as follows: • We formulate multi-database schema link-ing as a hierarchical grounding problem that requires progressive database-, table-, and column-wise schema-space reduction before SQL generation. • We propose MDB-Link , a hierarchical multi-database schema linking framework that inte-grates database localization based on global column evidence retrieval, LLM logits-based database reranking, table selection, column-wise grounding, and budget-aware schema context construction. • We introduce an evaluation protocol that jointly considers target-database accuracy, col-umn exact match and recall, schema compact-ness, inference cost, and downstream SQL utility. Experiments on MMQA, Spider2-Snow, and BIRD-dev show that MDB-Link offers a favorable balance across these dimen-sions compared with the evaluated baselines. 
+
+2 Related Work 
+
+Prior schema-linking research mainly considers settings in which the target database schema is already provided. Encoder-based parsers, includ-ing RAT-SQL (Wang et al., 2020), LGESQL (Cao et al., 2021), and S2SQL (Hui et al., 2022), model question–schema relations through relational or graph-based representations. LLM-based sys-tems such as RESDSQL (Li et al., 2023a), DIN-SQL (Pourreza and Rafiei, 2023), and CHESS (Ta-laei et al., 2024) instead use selectors, rankers, decomposition, or metadata augmentation to con-struct a schema context before SQL generation. These methods improve table- and column-level grounding within a known database, but they do not select the target database from a larger collec-tion. Research on large-schema Text-to-SQL has in-troduced full-schema prompting, retrieval, rerank-ing, graph search, and agentic exploration. Full-schema prompting delegates grounding to the SQL generator, but its context cost grows with schema size (Sun et al., 2023; Gao et al., 2023). Retrieval and graph-based methods re-duce this burden by selecting candidate schema items, as in SchemaGraphSQL (Safdarian et al., 2026). LinkAlign (Wang et al., 2025) combines database retrieval with schema-item grounding for multi-database settings, whereas AutoLink (Wang et al., 2026) iteratively explores large, pre-selected schemas; ReFoRCE (Deng et al., 2025) similarly uses iterative column exploration during SQL gen-eration. These approaches improve schema cover-age, but their different expansion strategies leave open how to jointly control database localization, structural completeness, schema compactness, and inference cost. MDB-Link addresses this gap by making database localization an explicit first stage and then constructing a budgeted table–column con-text within the predicted database. 
+
+3 Problem Statement 
+
+We study schema linking in a multi-database Text-to-SQL setting. Given a natural language question 
+
+q, an optional hint or external knowledge h, and a collection of databases D = {D1, D 2, . . . , D n},the goal is to identify the database that contains the information needed to answer q, and then se-lect the schema items within that database that are necessary for SQL generation. Each database Di
+
+contains a set of tables, columns, and available schema metadata, including column descriptions, sample values, value descriptions, primary keys, and foreign-key relationships. Formally, the schema linker produces a target database prediction ˆD ∈ D and a linked schema subset ˆS. The linked schema subset is organized by tables and columns: 
+
+ˆS = {(t, C t) | t ∈ T ˆD, C t ⊆ C(t)},
+
+where T ˆD denotes the tables in the predicted database and C(t) denotes the columns of table 
+
+t. The output should contain the target database, its tables, and columns required for generating a SQL query that can correctly answer the question q, in-cluding predicates, projections, aggregation, order-ing, and joins, while excluding irrelevant schema items as much as possible. 
+
+4 Methodology 
+
+As shown in Figure 1, MDB-Link comprises two stages: offline vector index construction and on-line hierarchical schema linking. Offline, it nor-malizes and serializes column-wise records from all candidate databases, embeds them, and stores their vectors and metadata in a persistent local 2+ 
+
+> Question Hint
+
+Encode 
+
+Question 
+
+Input   
+
+> Descriptions Databases (D)
+
+Global Column-Wise Vector Index Construction 
+
+Column Normalization  Document Serialization  Document Embedding      
+
+> Column-Wise Records
+> [Table Name; Column name; Values; ...]
+> Account; account_id; 1,2,3,4,5; ...
+> ...
+> Card; type; Gold, Classic, Junior, ...
+> Client; Gender; F, M; ...
+> Client; district_id; 23, ,43, 435, 42, 255; ... Column-wise
+> Documents
+> Question (q) :State the district
+> and region for loan ID '4990'.
+> Hint (h) :A2, A3 contains the
+> information about district
+> and region respectively.
+
+Output 
+
+> Target DB: Financial
+> Account: District_id, Account_id
+> District: District_id, A2, A3
+> Loan: account_id, loan_id
+
+Multi-Database Schema Linking 
+
+q Build Prompts 
+
+> LLM Ranker
+> Financial: 0.83
+> Card_games: 0.32
+> Student_club: 0.15
+> Predicted
+> Target
+> Database
+> Relevant
+> Tables
+> Column-wise
+> Vector Database
+
+q+h+D 
+
+PruneDB+ Top1(RerankDB) 
+
+Retrieve 
+
+Columns 
+
+High Relevant Columns 
+
+> [Database Name; Table Name; Column Name]
+> Financial; Account; [District_id, Account_id]
+> student_club; event; [Event_id, event_name,
+> event_date]
+> Financial; District; [District_id, A2, A3]
+> Financial; Loan; [Loan_id, Account_id]
+> card_games; foreign_data; [Name, Language, Type]
+
+DB Aggregation 
+
+> [Database Name; Column Name]
+> Financial; [District_id, Account_id, Event_id,
+> Event_name, Event_data, District_id, A2, A3,
+> Loan_id]
+> student_club; [Event_id, event_name, event_date]
+> Card_games; [Name, Language, Type]
+
+Database Localization 
+
+Round 2 𝑫 𝟐 
+
+q+h+ 𝑫 𝟐 
+
+𝑪 𝟏 
+
+𝑪 𝟐 
+
+𝑫 𝟏 
+
+𝐷 3
+
+> LLM Table
+> Selector
+> Build Prompts
+> Table Name:
+> Account, District, Loan
+
+Table Selection Column-Wise Grounding 
+
+> LLM Column
+> Selector
+> Build Prompts
+> Column Name:
+> District_id, Account_id,
+> A2, A3, ...
+
+Figure 1: The MDB-Link framework comprises offline construction of a global column-wise vector index and online multi-database schema linking through database localization, table selection, and column-wise grounding. 
+
+vector database with a searchable index. On-line, MDB-Link proceeds through three modules: database localization, table selection, and column-wise grounding. Database localization uses re-trieved column evidence to identify and rerank candidate databases, then selects relevant tables in the predicted database, and finally grounds the columns required for SQL generation. The LLM-based modules (database reranking, table selection, and column-wise grounding) follow a common budget-aware schema context construction strat-egy. Database reranking and table selection use a shared full-schema-first renderer, which first tests a prompt containing every table and column of the database being processed. Column-wise ground-ing uses a selected-table context procedure, which first attempts to use a prompt containing every col-umn of the selected tables. Across all modules, the schema context is reduced only if the resulting prompt exceeds the token budget. 
+
+4.1 Global Column-Wise Vector Index Construction 
+
+For each database collection D, corresponding to one dataset in our experiments, MDB-Link builds a single global vector index over all columns from its candidate databases. Following dense retrieval and retrieval-augmented generation, the index sup-ports collection-wide semantic matching between a question and column-level text (Karpukhin et al., 2020; Lewis et al., 2020). Columns are used as retrieval units because they are the finest-grained schema elements selected downstream and permit direct alignment with question semantics. More-over, available column and value descriptions sup-plement table and column names, while database and table provenance allows each retrieved column to be mapped back to its parent schema. Index construction has three steps. First, MDB-Link creates one normalized record per column, storing its database and table provenance; column name, type, description, sample values, and value descriptions; and available primary- and foreign-key metadata. Second, it serializes the table name, column name, and available column and value de-scriptions into a compact retrieval document. Only this document is embedded; the complete normal-ized record is retained as structured payload. Third, each retrieval document is encoded using an embed-ding model, and the resulting vector and payload are stored in a persistent local Qdrant collection configured with cosine distance (Qdrant, 2026). The serialized retrieval documents and selected payload fields for Account.Date and Card.Type 
+
+in Figure 1 are provided in Appendix A.1. 
+
+4.2 Database Localization 
+
+This module identifies the database whose schema contains the information needed to answer the input question. As summarized in Algorithm 1, 3MDB-Link uses an adaptive two-round strategy: it first retrieves column evidence across the complete database collection to reduce the risk of missing the target, and then progressively narrows the can-didate set so that LLM reranking is applied only to the retained databases. MDB-Link first encodes the question q once to obtain the query vector eq (Line 1), which is reused across two rounds. In the first round, it searches the entire database collection D: computing the retrieval budget b1, retrieving the top-b1 highly rel-evant columns (HRC) C1, and grouping this column evidence by database before support-based prun-ing produces the candidate set D1 (Lines 2–4). If 
+
+|D 1| ≤ κ, RerankDB ranks D1, and its top-ranked database is selected as the target database ˆD and returned (Lines 5–6). Otherwise, the algorithm takes the second round for further database prun-ing. RerankDB retains the top-κ databases as D2,which becomes the search scope for the second round (Lines 7–8). It reuses eq, computes b2 over 
+
+D2, retrieves C2 only from D2, and applies the same support-based pruning to produce D3 ⊆ D 2
+
+(Lines 9–11). Finally, RerankDB ranks D3, and the top-ranked database is returned as the target database ˆD (Lines 12–14). 
+
+Algorithm 1 Database Localization in MDB-Link                                                     
+
+> Input: Question q, optional hint h, databases D, column index I, second-round pruning threshold κ
+> Output: Predicted target database ˆD
+> 1: eq←EncodeQuestion( q)
+> 2: b1←ComputeBudget( D)
+> 3: C1←RetrieveColumns( I,eq,D)
+> 4: D1←PruneDB( C1)
+> 5: if |D 1| ≤ κthen
+> 6: ˆD←Top 1(RerankDB( D1, q, h ))
+> 7: else
+> 8: D2←Top κ(RerankDB( D1, q, h ))
+> 9: b2←ComputeBudget( D2)
+> 10: C2←RetrieveColumns( I,eq,D2)
+> 11: D3←PruneDB( C2)
+> 12: ˆD←Top 1(RerankDB( D3, q, h ))
+> 13: end if
+> 14: return ˆD
+
+EncodeQuestion( q) takes the question q as in-put and applies the same embedding model used to construct I, producing the query vector eq.The algorithm uses a budget-aware column re-trieval strategy which first uses ComputeBudget 
+
+to calculate budgets (i.e., the maximum number of HRCs) and then uses RetrieveColumns to re-trieve columns over a collection of databases. For a set of databases D, which has in total N columns, 
+
+ComputeBudget returns bi = min( βi, ⌈αN ⌉) ,where α and βi denote the ratio of N and maxi-mum number of the column to return, respectively. The function RetrieveColumns( I, eq, D, b i) then performs an exact cosine-similarity search over I:it compares eq with every indexed column vector whose stored database identifier belongs to D, and returns the top-bi scored columns as Ci.
+
+PruneDB takes a set of scored columns C and returns an ordered list of databases. Suppose that the columns in C come from M distinct databases. For each database Di, it computes the hit count ni,maximum similarity mi, and score sum ai. It then ranks the databases using lexicographic ordering: 
+
+mi, ai, and ni are compared in descending order, while the database identifier is compared in ascend-ing lexicographic order as the final tie-breaker. The ordered list retains Di if 
+
+ni ≥ η or mi ≥ Qρ(m1, . . . , m M ),
+
+where Qρ denotes the ρ-quantile operator over the database-level maximum similarities. After sup-port filtering, the function returns at most the first 
+
+μ databases in this order. This procedure removes weak long-tail matches while preserving databases supported by either repeated hits or one highly con-fident column. 
+
+RerankDB returns an ordered list of databases based on the score by the LLM reranker. For each candidate database, it constructs a binary reranking prompt using the shared full-schema-first renderer described in Section 4.5. The prompt asks whether the database schema contains sufficient informa-tion to answer the question and restricts the output to yes or no ; the prompt template and an example candidate-database schema context are provided in Appendices B.1 and B.2. Following prior work on using constrained token probabilities as confidence estimates (Kadavath et al., 2022; Si et al., 2022), MDB-Link scores each database by the normalized probability of the positive label. Let Vyes and Vno 
+
+denote the sets of token IDs that individually de-code, after whitespace stripping and lowercasing, to yes and no , respectively. Given next-token logits 
+
+zv, the database relevance score is 
+
+s(Di | q, h ) = 
+
+P 
+
+> v∈V yes
+
+exp( zv)
+
+P 
+
+> v∈V yes
+
+exp( zv) + P 
+
+> v∈V no
+
+exp( zv) .
+
+The function returns the candidate databases ranked by s(Di | q, h ), after which Top 1 or Top κ selects the number required by the corresponding branch of Algorithm 1. 44.3 Table Selection 
+
+Given the predicted database ˆD, question q, and optional hint h, table selection predicts a valid set of tables predicted as relevant ˆT ⊆ T ˆD. When 
+
+ˆT is nonempty, column-wise grounding searches only within these tables. This step is needed be-cause database localization identifies only the tar-get database, which may still contain many irrel-evant tables. Excluding such tables from column-wise grounding reduces schema noise and narrows the subsequent search space. MDB-Link constructs the table-selection prompt using the shared full-schema-first renderer de-scribed in Section 4.5. The LLM predicts the rel-evant table names. These names are deduplicated while preserving their first-occurrence order and validated by exact matching against the tables in 
+
+ˆD; the surviving names form ˆT . If no valid ta-ble remains, column-wise grounding falls back to the schema context retained during table selection rather than receiving an empty context. The prompt template is shown in Appendix B.3. 
+
+4.4 Column-Wise Grounding 
+
+After the relevant tables are selected, MDB-Link performs column-wise grounding within the re-duced table scope. This stage identifies the spe-cific columns required to construct the SQL query, including columns used for projection, filtering, aggregation, ordering, and joins. MDB-Link constructs the column-grounding prompt over ˆT using the selected-table context procedure described in Section 4.5. The LLM re-turns the necessary columns as a table-to-column mapping, with all names constrained to the dis-played schema context and join keys included only when needed. The prompt template is shown in Appendix B.4. The output of this stage is the final linked schema subset. It contains the predicted target database, the selected tables, and the grounded columns orga-nized by table. This linked schema is then passed to the downstream SQL generation model as a com-pact representation of the schema evidence needed to answer the question. 
+
+4.5 Budget-Aware Schema Context Construction 
+
+Database reranking, table selection, and column-wise grounding follow a common budget-aware schema context construction strategy. In all three steps, MDB-Link applies the token budget to the complete prompt, including the prompt template, question, optional hint, and schema context, rather than to the schema context alone. Database reranking and table selection use the shared full-schema-first renderer. It first attempts to include every table and column of the current database. If the prompt exceeds the input-token budget, it ranks columns by their cosine similarity to q using the global column-wise vector index, retains the highest-ranked column from each ta-ble, prioritizes primary- and foreign-key columns, and adds further columns across tables within the budget. Column-wise grounding uses the selected-table context procedure: it first attempts to include every column of the selected tables and otherwise reuses the table-selection records retained for those tables when available. Detailed selection and fall-back procedures are provided in Appendix C.1 and Algorithms 2 and 3. 
+
+5 Experiments 
+
+5.1 Datasets 
+
+We evaluate MDB-Link on three multi-database Text-to-SQL benchmarks: MMQA (Wu et al., 2025), Spider2-Snow, which is a Snowflake-oriented subset with gold SQL queries derived from Spider 2.0 (Lei et al., 2025), and the development split of BIRD (Li et al., 2023b). For MMQA, we recover the source SQLite databases from Spider (Yu et al., 2018) and exclude instances with invalid gold answers. Table 1 reports the numbers of sam-ples (questions), databases, tables, and columns in each benchmark. More detailed schema statistics are provided in Appendix E.                 
+
+> Dataset Samples DBs Tables Columns MMQA 3,128 158 808 4,220 Spider2-Snow 120 53 1,938 102,341 BIRD (dev) 1,534 11 75 798
+> Table 1: Statistics of the three evaluation datasets.
+
+5.2 Baselines 
+
+We compare MDB-Link with four baselines: • LinkAlign (Wang et al., 2025) is a representative and scalable multi-database schema-linking base-line that adopts iterative alignment and filtering. • AutoLink (Wang et al., 2026) is a state-of-the-art schema-linking method that expands candi-5date schemas through iterative exploration and an agentic strategy. • Single-Prompt uses direct LLM prompting with-out MDB-Link’s hierarchical reduction; its com-plete prompts are provided in Appendix B.5. • Dense Retrieval is an embedding-based re-trieval baseline. It encodes the question and the columns, and ranks the columns by cosine similarity. Following the initial Number of Columns to Retrieve setting in Autolink, the top 20 columns are used as the schema-linking result. For database localization, the predicted database is the database that receives the largest number of hits among the top 20 retrieved columns. 
+
+5.3 Evaluation Metrics 
+
+We evaluate MDB-Link at both the schema-linking and downstream SQL-generation levels using the following metrics: • Locate Accuracy (LA) is the proportion of sam-ples for which the predicted database exactly matches the gold target database. • Exact Match (EM) measures the proportion of samples whose predicted schema is the same as the gold schema. • Recall is computed at the micro level over all samples and is the fraction of gold columns cov-ered by the predicted columns. • Avg. Predicted Columns (#Cols) measures schema compactness and is the average number of columns selected by the linker. • Avg Token (Tok.) and Avg Time (Time) mea-sure schema-linking efficiency. Avg Token is the average total number of input and output LLM to-kens consumed per sample by the entire database-localization and schema-linking method. Avg Time is the average online end-to-end runtime per sample, including online retrieval and all LLM inference calls; the one-time offline vector-index construction is excluded. • Execution Accuracy (EX) measures down-stream correctness by comparing the execution result of the predicted SQL with that of the gold SQL on the corresponding database. Avg. To-kens and Avg. Time measure downstream effi-ciency as the average Spider-Agent token con-sumption and runtime per sample, respectively. 
+
+5.4 Implementation Details 
+
+We use Qwen3-Embedding-0.6B (Zhang et al., 2025) to construct the column-wise vector index and compute embedding-based retrieval scores. For LLM-based database reranking, table selection, column-wise grounding, and LLM-based base-lines, we evaluate Qwen2.5-14B-Instruct (Team, 2024) and Ministral-3-14B-Instruct (Liu et al., 2026). For downstream Text-to-SQL evalua-tion, we use Spider-Agent from Spider 2.0 (Lei et al., 2025) with Qwen3-Coder-30B-A3B-Instruct (Team, 2025) as its SQL-generation backbone. All fixed hyperparameter and inference settings are provided in Appendix D. All experiments are con-ducted on a single NVIDIA A100 GPU with 80 GB memory. 
+
+6 Main Results 
+
+6.1 Overall Schema Linking Performance 
+
+Table 2 summarizes overall schema-linking perfor-mance. Against LinkAlign under the same back-bone, MDB-Link improves LA in every compari-son. EM also improves except on Spider2-Snow with Ministral-3-14B, where it decreases from 5.00 to 1.67 even as LA and recall increase. Recall is higher in every comparison except for MMQA and BIRD-dev with Ministral-3-14B, where the de-creases are modest. The largest EM gains occur with Qwen2.5-14B: EM rises from 16.88 to 51.41 on MMQA and from 2.50 to 9.17 on Spider2-Snow, while MDB-Link reaches 98.89 LA on BIRD-dev under both backbones. AutoLink obtains the highest recall but returns 9.5–24.9 × more columns than MDB-Link. The predicted schema from AutoLink includes a large ratio of irrelevant columns, which requires a more powerful downstream generation method. Single-Prompt remains feasible on MMQA and BIRD-dev but cannot process Spider2-Snow, while Dense Re-trieval yields low LA and recall on all three datasets. Overall, MDB-Link provides the most consistent improvements in database localization and exact schema grounding while keeping the linked schema compact. The results therefore support a stronger accuracy–compactness trade-off, rather than uni-form superiority on every metric. 
+
+6.2 Efficiency Analysis 
+
+Table 3 reports average token usage and online runtime. Complete efficiency results for both Ministral-3-14B and Qwen2.5-14B are provided 6Spider2-Snow MMQA BIRD-dev Method LA EM Recall #Cols LA EM Recall #Cols LA EM Recall #Cols LinkAlign (M3) 51.67 5.00 33.56 10.60 87.40 34.24 85.09 6.50 98.15 22.62 85.94 6.44 LinkAlign (Q2.5) 50.00 2.50 20.07 5.78 88.68 16.88 66.75 4.79 95.44 12.52 70.42 4.72 AutoLink (M3) – – 65.43 197.86 – – 96.67 72.65 – – 97.35 44.43 AutoLink (Q2.5) – – 66.27 235.98 – – 95.89 89.40 – – 97.49 52.90 Single-Prompt (M3) – – – – 74.04 30.53 68.69 5.10 95.50 32.14 82.28 4.77 Single-Prompt (Q2.5) – – – – 59.85 28.61 55.50 4.74 98.24 36.77 80.97 4.48 Dense Retrieval (Q3E) 36.67 0.00 14.17 20.00 40.92 0.00 38.18 19.44 88.01 0.00 57.62 19.23                         
+
+> MDB-Link (M3) 60.00 1.67 39.12 10.16 90.54 43.00 83.22 5.34 98.89 39.05 82.72 4.69
+> MDB-Link (Q2.5) 65.00 9.17 32.10 9.49 89.71 51.41 86.32 5.31 98.89 38.01 81.19 4.38
+
+Table 2: Overall schema linking performance on Spider2-Snow, MMQA, and BIRD-dev. For LLM-based methods, M3 and Q2.5 denote the 14B versions of Ministral-3-Instruct and Qwen2.5-Instruct, respectively; Q3E denotes Qwen3-Embedding-0.6B. LA, EM, and Recall are reported as percentages. The average numbers of gold columns are 9.88, 5.28, and 4.47 for Spider2-Snow, MMQA, and BIRD-dev, respectively. For Spider2, the Single-Prompt cannot be conducted because the prompt is out-of-window.                                  
+
+> Note. AutoLink may return columns from multiple databases and therefore does not produce a single target-database prediction, so LA is not applicable. EM is not reported for AutoLink because its multi-database schema output is not evaluated as a single-database linked column set in our protocol. Spider2-Snow MMQA BIRD-dev Method Tok. Time Tok. Time Tok. Time LinkAlign 223 409.72 118 119.35 122 127.62 AutoLink 652 465.42 118 64.84 48 45.22 Single-Prompt ––45 12.28 13 3.82 MDB-Link 515 369.17 40 14.15 58 12.30
+
+Table 3: Efficiency comparison under Qwen2.5-14B. Tokens are reported in thousands, and Time is reported in seconds. 
+
+in Appendix F. Because token demand depends on both schema scale and method-specific interac-tion patterns, we compare methods only within the same dataset and backbone. We interpret token us-age jointly with online runtime and schema-linking quality (i.e., results in Table 2). Under Qwen2.5-14B, MDB-Link is faster than LinkAlign and Au-toLink on every dataset. Compared with LinkAlign on Spider2-Snow, MDB-Link uses more tokens but reduces the average runtime from 409.72 to 369.17 seconds while improving LA, EM, and Recall. On MMQA and BIRD-dev, it uses fewer tokens, runs faster, and improves all three schema-linking met-rics. These results show that token usage and run-time capture different aspects of online efficiency. Compared with AutoLink, MDB-Link runs faster and returns far fewer columns on all three datasets; it uses fewer tokens on Spider2-Snow and MMQA but more on BIRD-dev, whereas AutoLink attains higher Recall with substantially broader schemas. Single-Prompt has the lowest runtime where fea-sible, but yields lower LA, EM, and Recall and cannot process Spider2-Snow. Overall, MDB-Link provides a favorable balance between online effi-ciency and schema-linking quality rather than uni-formly minimizing every efficiency measure. 
+
+6.3 Text-to-SQL Performance 
+
+To isolate the downstream effect of schema link-ing, we keep Spider-Agent and its settings fixed, varying only the schema-linking output provided as input. The results are shown in Table 4. On Spider2-Snow, MDB-Link achieves higher EX than both LinkAlign and AutoLink while running faster than either; its token use is much lower than Au-toLink’s but a bit higher than LinkAlign’s. On MMQA, MDB-Link improves EX, token use, and runtime over LinkAlign. AutoLink attains higher EX and a shorter runtime but consumes more to-kens than MDB-Link, as AutoLink produces a much larger linked schema. On BIRD-dev, MDB-Link improves all three downstream measures over LinkAlign; compared with AutoLink, it yields slightly lower EX but uses much fewer tokens (6,007 vs 12,824) and less time with a substantially smaller schema. Complete model-specific results are provided in Appendix G. Overall, MDB-Link provides a consistent balance between execution accuracy, schema compactness, and downstream ef-ficiency; it outperforms LinkAlign on accuracy on all three datasets with lower token costs and time in most cases, and often performs competitive as AutoLink on accuracy but costs much fewer tokens and less time. 7Spider2-Snow MMQA BIRD-dev Method EX Tok. Time EX Tok. Time EX Tok. Time LinkAlign 7.50 46,235 181.56 55.40 7,169 30.58 50.00 7,248 26.47 AutoLink 7.50 103,307 163.50 69.18 7,662 22.79 57.69 12,824 25.71                   
+
+> MDB-Link 8.30 55,532 144.58 63.04 5,567 25.71 55.35 6,077 21.53
+> Table 4: Downstream Spider-Agent results with Qwen2.5-14B schema links. Avg Token and Time are reported in tokens and seconds.
+> Method LA EM Recall
+> MDB-Link 65.00 9.17 32.10
+> w/o DB rerank 52.50 (-12.50) 5.83 (-3.34) 16.78 (-15.32) w/o table selection 65.00 (0.00) 7.50 (-1.67) 21.59 (-10.51)
+> Table 5: Ablation study on Spider2-Snow with Qwen2.5-14B. w/o DB rerank means that the rerank functions are omitted. w/o table selection means that the Table Selection module is omitted.
+
+7 Ablation Study 
+
+Here, we report and analyse the results of abla-tion experiments. In Table 5, w/o DB reranking removes the LLM-based database reranker and takes the database that has the maximum columns in HRC as the predicted database, whereas w/o table selection removes the intermediate table-selection stage and grounds columns directly over a budget-aware schema context of the predicted database. Complete results for both Qwen2.5-14B and Ministral-3-14B across all three datasets are reported in Appendix H. Removing database reranking reduces LA by 12.50 points, EM by 3.34 points, and Recall by 15.32 points. This result indicates that retrieval sup-port alone is insufficient to distinguish some seman-tically similar databases, while LLM reranking pro-vides useful question–schema evidence for the fi-nal localization decision. Removing table selection leaves LA unchanged, as expected for a module applied after database localization, but lowers EM by 1.67 points and Recall by 10.51 points. On this large-schema dataset, exposing column grounding to a broader set of tables therefore introduces dis-tractors rather than reliably recovering additional gold columns. The two modules play complemen-tary roles: database reranking determines where to search, while table selection narrows the within-database search space for more reliable column grounding. 
+
+8 Conclusion 
+
+MDB-Link reframes multi-database schema link-ing as a hierarchical reduction problem rather than flat retrieval over all columns. It retrieves question-relevant columns from a global column-wise vec-tor index and aggregates them into database-level evidence, which is further refined through support-based pruning and LLM reranking. After database localization, table selection, and column-wise grounding then narrow the predicted schema, while budget-aware schema context construction con-trols the schema context according to the complete prompt budget. Together, these components pro-vide a structured alternative to full-schema prompt-ing and unconstrained schema expansion. Across MMQA, Spider2-Snow, and BIRD-dev, MDB-Link improves LA and downstream EX over LinkAlign in all six datasets: backbone compar-isons and improves EM in five of the six; while running faster than LinkAlign and AutoLink in ev-ery comparable setting. AutoLink achieves higher recall but selects 9.5–24.9 × more columns than MDB-Link without consistent EX gains. Ablations support the hierarchical design: removing database reranking lowers LA and Recall in all six settings, while removing table selection lowers EM and Re-call in five of six. These results suggest that multi-database schema linking should jointly optimize correctness, compactness, and downstream SQL utility rather than maximize column recall alone. 
+
+Limitations 
+
+In the future, datasets containing larger and more complex schemas are still a challenge for schema linking and text-to-SQL. More advanced methods need to be developed. Also, it needs evaluation and deployment for real-word data environment with larger scale databalse and more complex schemas. MDB-Link also relies on available schema meta-data, including names, descriptions, sample values, and key relations, together with a persistent vector 8index. In real deployments, such metadata may be incomplete, noisy, or outdated, while changes to database schemas may require the index to be updated. Robustness under these conditions has not yet been systematically evaluated. 
+
+References 
+
+Ruisheng Cao, Lu Chen, Zhi Chen, Yanbin Zhao, Su Zhu, and Kai Yu. 2021. LGESQL: Line graph enhanced text-to-SQL model with mixed local and non-local relations. In Proceedings of the 59th An-nual Meeting of the Association for Computational Linguistics and the 11th International Joint Confer-ence on Natural Language Processing (Volume 1: Long Papers) , pages 2541–2555, Online. Association for Computational Linguistics. Minghang Deng, Ashwin Ramachandran, Canwen Xu, Lanxiang Hu, Zhewei Yao, Anupam Datta, and Hao Zhang. 2025. Reforce: a text-to-sql agent with self-refinement, consensus enforcement, and column ex-ploration. arXiv preprint arXiv:2502.00675 .Dawei Gao, Haibin Wang, Yaliang Li, Xiuyu Sun, Yichen Qian, Bolin Ding, and Jingren Zhou. 2023. Text-to-sql empowered by large language mod-els: A benchmark evaluation. arXiv preprint arXiv:2308.15363 .Binyuan Hui, Ruiying Geng, Lihan Wang, Bowen Qin, Yanyang Li, Bowen Li, Jian Sun, and Yongbin Li. 2022. S 2SQL: Injecting syntax to question-schema interaction graph encoder for text-to-SQL parsers. In Findings of the Association for Computational Linguistics: ACL 2022 , pages 1254–1262, Dublin, Ireland. Association for Computational Linguistics. Saurav Kadavath, Tom Conerly, Amanda Askell, Tom Henighan, Dawn Drain, Ethan Perez, Nicholas Schiefer, Zac Hatfield-Dodds, Nova DasSarma, Eli Tran-Johnson, et al. 2022. Language models (mostly) know what they know. arXiv preprint arXiv:2207.05221 .Vladimir Karpukhin, Barlas Oguz, Sewon Min, Patrick Lewis, Ledell Wu, Sergey Edunov, Danqi Chen, and Wen-tau Yih. 2020. Dense passage retrieval for open-domain question answering. In Proceedings of the 2020 conference on empirical methods in natural language processing (EMNLP) , pages 6769–6781. George Katsogiannis-Meimarakis and Georgia Koutrika. 2023. A survey on deep learning approaches for text-to-sql. The VLDB Journal , 32(4):905–936. Fangyu Lei, Jixuan Chen, Yuxiao Ye, Ruisheng Cao, Dongchan Shin, Hongjin Su, Zhaoqing Suo, Hongcheng Gao, Wenjing Hu, Pengcheng Yin, et al. 2025. Spider 2.0: Evaluating language models on real-world enterprise text-to-sql workflows. In Inter-national Conference on Learning Representations ,volume 2025, pages 28691–28735. Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin, Naman Goyal, Hein-rich Küttler, Mike Lewis, Wen-tau Yih, Tim Rock-täschel, et al. 2020. Retrieval-augmented generation for knowledge-intensive nlp tasks. Advances in neu-ral information processing systems , 33:9459–9474. Haoyang Li, Jing Zhang, Cuiping Li, and Hong Chen. 2023a. Resdsql: Decoupling schema linking and skeleton parsing for text-to-sql. In Proceedings of the AAAI Conference on Artificial Intelligence , vol-ume 37, pages 13067–13075. Jinyang Li, Binyuan Hui, Ge Qu, Jiaxi Yang, Binhua Li, Bowen Li, Bailin Wang, Bowen Qin, Ruiying Geng, Nan Huo, Xuanhe Zhou, Chenhao Ma, Guo-liang Li, Kevin Chang, Fei Huang, Reynold Cheng, and Yongbin Li. 2023b. Can LLM already serve as a database interface? a BIg bench for large-scale database grounded text-to-SQLs. In Advances in Neural Information Processing Systems , volume 36. Alexander H Liu, Kartik Khandelwal, Sandeep Sub-ramanian, Victor Jouault, Abhinav Rastogi, Adrien Sadé, Alan Jeffares, Albert Jiang, Alexandre Cahill, Alexandre Gavaudan, et al. 2026. Ministral 3. arXiv preprint arXiv:2601.08584 .Mohammadreza Pourreza and Davood Rafiei. 2023. Din-sql: Decomposed in-context learning of text-to-sql with self-correction. Advances in neural infor-mation processing systems , 36:36339–36348. Qdrant. 2026. Qdrant: Vector search engine and vector database. https://qdrant.tech/ documentation/ . Accessed: 2026-07-08. AmirHossein Safdarian, Milad Mohammadi, Ehsan Ja-hanbakhsh Bashirloo, Mona Shahamat Naderi, and Heshaam Faili. 2026. SchemaGraphSQL: Efficient schema linking with pathfinding graph algorithms for text-to-SQL on large-scale databases. In Find-ings of the Association for Computational Linguis-tics: EACL 2026 , pages 2585–2599, Rabat, Morocco. Association for Computational Linguistics. Chenglei Si, Zhe Gan, Zhengyuan Yang, Shuohang Wang, Jianfeng Wang, Jordan Boyd-Graber, and Li-juan Wang. 2022. Prompting GPT-3 to be reliable. 
+
+arXiv preprint arXiv:2210.09150 .Ruoxi Sun, Sercan O Arik, Rajarishi Sinha, Hootan Nakhost, Hanjun Dai, Pengcheng Yin, and Tomas Pfister. 2023. Sqlprompt: In-context text-to-sql with minimal labeled data. In Findings of the Association for Computational Linguistics: EMNLP 2023 , pages 542–550. Shayan Talaei, Mohammadreza Pourreza, Yu-Chen Chang, Azalia Mirhoseini, and Amin Saberi. 2024. Chess: Contextual harnessing for efficient sql synthe-sis. arXiv preprint arXiv:2405.16755 .Qwen Team. 2024. Qwen2.5: A party of foundation models. 
+
+9Qwen Team. 2025. Qwen3 technical report. Preprint ,arXiv:2505.09388. Bailin Wang, Richard Shin, Xiaodong Liu, Oleksandr Polozov, and Matthew Richardson. 2020. Rat-sql: Relation-aware schema encoding and linking for text-to-sql parsers. In Proceedings of the 58th annual meeting of the association for computational linguis-tics , pages 7567–7578. Yihan Wang, Peiyu Liu, and Xin Yang. 2025. Linkalign: Scalable schema linking for real-world large-scale multi-database text-to-sql. In Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing , pages 977–991. Ziyang Wang, Yuanlei Zheng, Zhenbiao Cao, Xiaojin Zhang, Zhongyu Wei, Pei Fu, Zhenbo Luo, Wei Chen, and Xiang Bai. 2026. Autolink: Autonomous schema exploration and expansion for scalable schema link-ing in text-to-sql at scale. In Proceedings of the AAAI Conference on Artificial Intelligence , volume 40, pages 33809–33817. Jian Wu, Linyi Yang, Dongyuan Li, Yuliang Ji, Manabu Okumura, and Yue Zhang. 2025. Mmqa: Evaluating llms with multi-table multi-hop complex questions. In The thirteenth international conference on learn-ing representations .Tao Yu, Rui Zhang, Kai Yang, Michihiro Yasunaga, Dongxu Wang, Zifan Li, James Ma, Irene Li, Qingn-ing Yao, Shanelle Roman, et al. 2018. Spider: A large-scale human-labeled dataset for complex and cross-domain semantic parsing and text-to-sql task. In Proceedings of the 2018 conference on empiri-cal methods in natural language processing , pages 3911–3921. Yanzhao Zhang, Mingxin Li, Dingkun Long, Xin Zhang, Huan Lin, Baosong Yang, Pengjun Xie, An Yang, Dayiheng Liu, Junyang Lin, Fei Huang, and Jingren Zhou. 2025. Qwen3 embedding: Advancing text embedding and reranking through foundation models. 
+
+arXiv preprint arXiv:2506.05176 .
+
+A Global Column-Wise Vector Index Construction 
+
+A.1 Indexed Point and Retrieval Document Examples 
+
+Figures 2 and 3 show two indexed column points and their serialized retrieval documents. The ex-amples follow the Financial.Account.Date and 
+
+Financial.Card.Type columns in Figure 1. Each vector is computed from the compact retrieval doc-ument, while its payload stores provenance and metadata for later database aggregation and schema rendering. 
+
+> Indexed point: column_id: Financial.Account.Date payload: db_id: Financial table_name: Account column_name: Date data_type: DATE sample_values: [2012-08-26,1994-02-08,1995-04-22, 1995-09-22,1993-05-09] is_primary_key: false is_foreign_key: false Retrieval document: Table: Account Column: Date Description: None Value descriptions: in the form YYMMDD
+
+Figure 2: Indexed point and retrieval document for 
+
+Financial.Account.Date ; None is a literal value in the source metadata and is therefore retained in the seri-alized retrieval document. 
+
+B Prompt Templates 
+
+B.1 LLM-Based Database Reranking Prompt 
+
+Listing 1 gives the full prompt used for Large Language Model (LLM)-based database rerank-ing. For each candidate database, MDB-Link fills 
+
+{DATABASE_SCHEMAS} with a budget-aware schema context, {QUESTION} with the natural language question, and {HINT} with optional external knowl-edge. The model is constrained to output yes or 
+
+no ; MDB-Link uses the next-token probability of 
+
+yes as the database relevance score.  
+
+> ### Instructions: You are an expert data analyst specializing in database querying. Your task is to determine whether the given database is suitable for writing a correct SQL query that answers the question. You must carefully examine the provided schema context and decide whether it contains the necessary tables, columns, and relationships required to answer the question. The input schema is a rendered schema context: it begins with the database name, may include primary keys and foreign key relationships, and then lists each table with per-column fields such as column name, data type, description, sample values, and value descriptions. The context may be filtered or truncated for prompt budget, so use only the tables, columns, and relationships that are explicitly shown.
+> `NOT_AVAILABLE `means the source data does not provide that metadata.
+
+10 Indexed point: column_id: Financial.Card.Type payload: db_id: Financial table_name: Card column_name: Type data_type: TEXT sample_values: [junior,classic,gold] is_primary_key: false is_foreign_key: false Retrieval document: Table: Card Column: Type Description: None Value descriptions: "junior": junior class of credit card; "classic": standard class of credit card; "gold": high-level credit card 
+
+Figure 3: Indexed point and retrieval document for 
+
+Financial.Card.Type .
+
+`NONE ` means the source data explicitly indicates there are no items in that section .Primary keys are listed only for key columns that appear in the schema context. Foreign key relationships are listed only when both linked columns appear in the schema context. Return only "yes" or "no". ### Hint: The hint (if provided) may suggest relevant tables, columns, or relationships. Use the hint as additional guidance, but rely primarily on the schema context and the question. ### Output Format (STRICT): - Output must be exactly one word: "yes" or "no" - Use lowercase only - Do NOT include any explanations - Do NOT include reasoning - Do NOT include JSON - Do NOT include markdown - Do NOT include any extra text or symbols ### Decision Rules: - Answer "yes" if the shown schema context contains sufficient information to construct a correct SQL query for the question. - Answer "no" if the shown schema context lacks key information required to answer the question. - Do not assume the existence of hidden tables or columns that are not shown. - Prefer strict judgment: if unsure, answer "no". - You may reason internally to determine the answer, but do NOT output the reasoning content. ### INPUT: Database Schemas: {DATABASE_SCHEMAS} Question: {QUESTION} Hint (may be empty): {HINT} Answer: 
+
+Listing 1: Full prompt template for LLM-based database reranking. 
+
+B.2 Example Candidate-Database Schema Context 
+
+Listing 2 shows a shortened example of the 
+
+{DATABASE_SCHEMAS} field for the candidate database Financial . Only a small number of ta-bles and columns are shown to illustrate the ren-dered schema format. 
+
+Database: Financial Primary keys: - Account: Account_id - District: District_id - Loan: Loan_id Foreign key relationships: - Account.District_id -> District.District_id - Loan.Account_id -> Account.Account_id Table: Account Column: Account_id Data type: INT Description: Unique identifier of an account. Column: District_id Data type: INT Description: District associated with the account. Table: District Column: A2 Data type: TEXT Description: District name. Value descriptions: Contains district information. Column: A3 Data type: TEXT Description: Region name. Value descriptions: Contains region information. Table: Loan Column: Loan_id Data type: INT Description: Unique identifier of a loan. 
+
+Listing 2: Shortened schema context used as an example input to the database reranking prompt. 
+
+11 B.3 Table Selection Prompt 
+
+Listing 3 gives the table-selection prompt. The long in-prompt few-shot demonstration schemas are omitted here for readability; the displayed prompt preserves the task instruction, strict output format, and runtime input fields used by MDB-Link. 
+
+### Instructions: You are an expert data analyst specializing in database querying. Your task is to identify the minimal set of tables needed to write a correct SQL query that answers the question. The input schema is a rendered schema context: it begins with the database name, may include primary keys and foreign key relationships, and then lists each table with per-column fields such as column name, data type, description, sample values, and value descriptions. The schema context may be filtered or truncated for prompt budget, so only use tables and columns that are explicitly shown. Only include tables that are necessary for the SQL query. Do not include irrelevant tables. Do not rely on tables or columns that are not shown in the schema context. Important notes: - The schema context may include only a subset of columns per table because of prompt-budget filtering. - Primary keys are listed only for key columns that appear in the current schema context. - Foreign key relationships are listed only when both linked columns appear in the current schema context. - `Sample values ` are separated by semicolons when multiple values are shown. - `NOT_AVAILABLE ` means the source data does not provide that metadata. - `NONE ` means the source data explicitly indicates there are no items in that section .- Database names, table names, and column names must be interpreted exactly as provided. ### Hint: The hint (if provided) may mention useful tables, columns, or relationships. Use it as supplementary guidance, but rely primarily on the schema context and the question. ### Output Requirements (STRICT): Return ONLY a valid JSON object. Format: {"relevant_tables": ["table_name1", " table_name2", "table_name3"] }Rules (STRICT): - Each item must be a table name from the provided schema context. - Include all and only the tables required to write the SQL query. - Use double quotes for all strings. - Do NOT invent table names. - Do NOT include explanations. - Do NOT include reasoning. - Do NOT include markdown or code blocks. - Do NOT include any text before or after the JSON object. If no table can be confidently identified, return: {} You may reason internally to determine the correct tables, but do NOT output the reasoning content. Only output the final JSON object. ### INPUT: {DATABASE_SCHEMAS} Question: {QUESTION} Hint (may be empty): {HINT} 
+
+Listing 3: Prompt template for table selection. 
+
+B.4 Column-Wise Grounding Prompt 
+
+Listing 4 gives the column-wise grounding prompt. As above, long few-shot demonstration schemas are omitted to keep the supplementary PDF com-pact. 
+
+### Instructions: You are an expert data analyst specializing in database querying. Your task is to identify the minimal set of columns used to write a correct SQL query that answers the question. The database schema provided to you has already been filtered to contain candidate tables for this question. The input schema is a rendered schema context: it begins with the database name, may include primary keys and foreign key relationships, and then lists each table with per-column fields such as column name, data type, description, sample values, and value descriptions. The schema context may be filtered or truncated for prompt budget, so only use tables and columns that are explicitly shown. Do NOT decide which additional tables are relevant. Your job is to identify which visible columns from the provided tables are necessary for the SQL query. Only include columns that are necessary for the SQL query . Do not include irrelevant columns. Do not include extra columns just because they appear in the same table. Do not guess hidden columns that do not appear in the schema context. Include join keys only when they are needed to connect tables in the SQL 
+
+12 query and are visible in the schema context .Important notes: - The schema context has already been filtered to candidate tables, and it may still include only a subset of columns because of prompt-budget filtering. - Primary keys are listed only for key columns that appear in the current schema context. - Foreign key relationships are listed only when both linked columns appear in the current schema context. - `Sample values ` are separated by semicolons when multiple values are shown. - `NOT_AVAILABLE ` means the source data does not provide that metadata. - `NONE ` means the source data explicitly indicates there are no items in that section .- Table names and column names must be used exactly as provided in the schema context. ### Hint: The hint (if provided) may highlight columns, conditions, or relationships that are relevant to the question. Use the hint as additional guidance, but rely primarily on the schema context and the question. ### Output Requirements (STRICT): Return ONLY a valid JSON object. Format: {"relevant_columns": { "table_name1": ["column1", "column2"], "table_name2": ["column3"], "table_name3": ["column4", "column5", " column6"] }}Rules (STRICT): - Keys must be table names from the provided schema context. - Values must be lists of column names from the provided schema context. - Use double quotes for all keys and strings. - Do NOT invent tables or columns that do not exist in the schema context. - Do NOT include explanations. - Do NOT include reasoning. - Do NOT include markdown or code blocks. - Do NOT include any text before or after the JSON. - Only include columns required for writing the SQL query. - If a required column is not visible in the schema context, do NOT guess it. - If a table has no required columns, do NOT include that table. If no columns can be confidently identified, return: {} You may reason internally to determine the correct columns, but do NOT output the reasoning content. Only output the final JSON object. ### INPUT: {DATABASE_SCHEMAS} Question: {QUESTION} Hint (may be empty): {HINT} 
+
+Listing 4: Prompt template for column-wise grounding. 
+
+B.5 Single-Prompt Baseline Prompts 
+
+The Single-Prompt baseline first selects one tar-get database with Listing 5, and then predicts the required columns within that database with List-ing 6. Both templates are reproduced in full. The second-stage schema-linking prompt is the few-shot template used in all Single-Prompt baseline experiments and includes three demonstrations. 
+
+### Instructions: You are an expert data analyst specializing in database querying. Your task is to identify the most relevant database needed to write a correct SQL query that answers the question. Select only one database that are most likely to contain the necessary tables, columns, and relationships required for answering the question. Do not select irrelevant databases. ### Database Schemas: Each database schema describes the structure of one database, including its name, tables, columns, primary keys, foreign keys, and possible join paths. Table names, column names, and join paths may help indicate whether a database is relevant to the question. Primary keys uniquely identify rows in a table. Foreign keys represent relationships between tables and may indicate how tables should be joined. ### Hint: The hint (if provided) may highlight databases, tables, columns, or relationships that are relevant to the question. Use the hint as additional guidance, but rely primarily on the database schemas and the question. Return ONLY a valid JSON object. Format: {"relevant_database": "database_name" }
+
+13 Rules (STRICT): - The value must be exactly one database name from the provided database schemas. - Select the single most relevant database for answering the question. - Use double quotes for all strings. - Do NOT invent database names that do not exist in the input. - Do NOT include explanations. - Do NOT include reasoning. - Do NOT include markdown or code blocks. - Do NOT include any text before or after the JSON object. If no database can be confidently identified, return: {} You may reason internally to determine the correct database, but do NOT output the reasoning content. Only output the final JSON object. ### INPUT: Database Schemas: {DATABASE_SCHEMAS} Question: {QUESTION} Hint (may be empty): {HINT} 
+
+Listing 5: Complete database-selection prompt used by the Single-Prompt baseline. 
+
+### Instructions: You are an expert data analyst specializing in database querying. Your task is to identify the minimal set of columns used to write a correct SQL query that answers the question. The input schema uses a rendered database format shared across the schema-linking pipeline: it begins with the database name, may include primary keys and foreign key relationships, and then lists each table with per-column fields such as column name, data type, description, sample values, and value descriptions. Use only tables and columns that are explicitly shown in the rendered schema. Only include columns that are necessary for the SQL query. Do not include irrelevant columns. Do not include extra columns just because they appear in the same table. Include join keys only when they are needed to connect tables in the SQL query. Important notes: - The schema begins with `Database: ... `,followed by `Primary keys: ` and `Foreign key relationships: ` sections, and then one or more `Table: ... ` blocks. - Each column is rendered as a block containing 
+
+`Column `, `Data type `, `Description `, `
+
+Sample values `, and `Value descriptions `.- Primary keys are listed by table in the `
+
+Primary keys: ` section. If key metadata is unavailable, the section is `NOT_AVAILABLE `.If the source data explicitly indicates there are no primary-key items to show, the section is `NONE `.- Foreign key relationships are listed as `
+
+source_table.source_column -> target_table. target_column `. If relationship metadata is unavailable, the section is `NOT_AVAILABLE `.If the source data explicitly indicates there are no relationships to show, the section is `NONE `.- `Sample values ` are separated by semicolons when multiple values are shown. - `NOT_AVAILABLE ` means the source data does not provide that metadata. - `NONE ` means the source data explicitly indicates there are no items in that section .- Table names and column names must be used exactly as provided in the rendered schema. ### Hint: The hint (if provided) may highlight columns, conditions, or relationships that are relevant to the question. Use the hint as additional guidance, but rely primarily on the rendered schema and the question. ### Output Requirements (STRICT): Return ONLY a valid JSON object. Format: {"relevant_columns": { "table_name1": ["column1", "column2"], "table_name2": ["column3"], "table_name3": ["column4", "column5", " column6"] }}Rules (STRICT): - Keys must be table names from the provided rendered schema. - Values must be lists of column names from the rendered schema. - Use double quotes for all keys and strings. - Do NOT invent tables or columns that do not exist in the rendered schema. - Do NOT include explanations. - Do NOT include reasoning. - Do NOT include markdown or code blocks. - Do NOT include any text before or after the JSON. - Only include columns required for writing the SQL query. - If a table has no required columns, do NOT include that table. If no columns can be confidently identified, return: {} You may reason internally to determine the correct columns, but do NOT output the 
+
+14 reasoning content. Only output the final JSON object. ### Example 1: Database: department_management Primary keys: - department: Department_ID Foreign key relationships: - management.department_ID -> department. Department_ID Table: department Column: Department_ID Data type: INT Description: Unique identifier for a department. Sample values: NOT_AVAILABLE Value descriptions: NOT_AVAILABLE Column: Name Data type: TEXT Description: Department name. Sample values: NOT_AVAILABLE Value descriptions: NOT_AVAILABLE Column: Budget_in_Billions Data type: REAL Description: Department budget. Sample values: NOT_AVAILABLE Value descriptions: NOT_AVAILABLE Column: Num_Employees Data type: REAL Description: Number of employees. Sample values: NOT_AVAILABLE Value descriptions: NOT_AVAILABLE Table: management Column: department_ID Data type: INT Description: Department managed by a head. Sample values: NOT_AVAILABLE Value descriptions: NOT_AVAILABLE Column: head_ID Data type: INT Description: Head managing the department. Sample values: NOT_AVAILABLE Value descriptions: NOT_AVAILABLE Column: temporary_acting Data type: TEXT Description: Whether the head is temporary acting. Sample values: NOT_AVAILABLE Value descriptions: NOT_AVAILABLE Question: Which department currently headed by a temporary acting manager has the largest number of employees, and how many employees does it have? Hint (may be empty): No hint response: {"relevant_columns": { "department": ["Department_ID", "Name", " Num_Employees"], "management": ["department_ID", " temporary_acting"] }}### Example 2: Database: activity_1 Primary keys: - Student: StuID - Activity: actid Foreign key relationships: - Participates_in.stuid -> Student.StuID - Participates_in.actid -> Activity.actid Table: Student Column: StuID Data type: integer Description: Unique identifier for a student. Sample values: 1001; 1002; 1003 Value descriptions: NOT_AVAILABLE Column: LName Data type: text Description: Last name of the student. Sample values: Smith; Kim; Jones Value descriptions: NOT_AVAILABLE Column: Fname Data type: text Description: First name of the student. Sample values: Linda; Tracy; Shiela Value descriptions: NOT_AVAILABLE Column: Age Data type: integer Description: Age of the student. Sample values: 18; 19; 21 Value descriptions: NOT_AVAILABLE Table: Participates_in Column: stuid Data type: integer Description: Student participating in an activity. Sample values: 1001; 1002 Value descriptions: NOT_AVAILABLE Column: actid Data type: integer Description: Activity joined by the student. Sample values: 770; 771; 777 Value descriptions: NOT_AVAILABLE Table: Activity Column: actid Data type: integer Description: Unique identifier for an activity. Sample values: 770; 771; 772 Value descriptions: NOT_AVAILABLE Column: activity_name 
+
+15 Data type: text Description: Name of the activity. Sample values: Mountain Climbing; Canoeing; Kayaking Value descriptions: NOT_AVAILABLE Question: Which activities does student Linda Smith participate in? Hint (may be empty): No hint response: {"relevant_columns": { "Student": ["StuID", "LName", "Fname"], "Participates_in": ["stuid", "actid"], "Activity": ["actid", "activity_name"] }}### Example 3: Database: ADVENTUREWORKS Primary keys: NOT_AVAILABLE Foreign key relationships: NOT_AVAILABLE Table: ADVENTUREWORKS.ADVENTUREWORKS. CURRENCYRATE Column: currencyrateid Data type: INT Description: NOT_AVAILABLE Sample values: 2; 4; 5 Value descriptions: NOT_AVAILABLE Column: tocurrencycode Data type: STRING Description: NOT_AVAILABLE Sample values: AUD; CAD; CNY Value descriptions: NOT_AVAILABLE Column: endofdayrate Data type: FLOAT Description: NOT_AVAILABLE Sample values: 1.55; 1.4683; 8.2784 Value descriptions: NOT_AVAILABLE Column: fromcurrencycode Data type: STRING Description: NOT_AVAILABLE Sample values: USD Value descriptions: NOT_AVAILABLE Column: averagerate Data type: FLOAT Description: NOT_AVAILABLE Sample values: 1.5491; 1.4641; 8.2781 Value descriptions: NOT_AVAILABLE Question: What are the average and end-of-day exchange rates from USD to CAD? Hint (may be empty): No hint response: {"relevant_columns": { "ADVENTUREWORKS.ADVENTUREWORKS.CURRENCYRATE": ["fromcurrencycode", "tocurrencycode", " averagerate", "endofdayrate"] }}### INPUT: {DATABASE_SCHEMAS} Question: {QUESTION} Hint (may be empty): {HINT} 
+
+Listing 6: Complete few-shot prompt used in all Single-Prompt baseline experiments. 
+
+C Budget-Aware Schema Context Construction 
+
+C.1 Construction Procedure 
+
+MDB-Link uses two related procedures to construct the schema context that fills 
+
+{DATABASE_SCHEMAS} . Database reranking and table selection use the shared full-schema-first renderer over one candidate or predicted database (Algorithm 2). Column-wise grounding uses the selected-table context procedure: it first tests all columns of the selected tables and otherwise reuses the table-selection records retained for those tables when available (Algorithm 3). In both procedures, the token test is performed on the complete prompt, including the prompt template, question, optional hint, and schema context. 16 Algorithm 2 Full-Schema-First Renderer 
+
+Input: Database D, question q, optional hint h, prompt tem-plate P , prompt cap B, column index I
+
+Output: Rendered schema context C for 
+
+{DATABASE_SCHEMAS} 
+
+1: Render the complete database schema Sfull , preserving source order and available metadata. 2: if tokens( P (Sfull , q, h )) ≤ B then 
+
+3: return Sfull 
+
+4: end if 
+
+5: Embed q and retrieve all indexed columns of D; assign each column its cosine-similarity score. 6: Initialize A with the highest-scoring column of every table; mark these columns as protected. 7: Add all available primary-key and foreign-key columns to A.8: if tokens( P (Render( A), q, h )) > B then 
+
+9: Remove unprotected foreign keys from A in ascending score order until the prompt fits or none remain. 10: Then remove unprotected primary keys in ascending score order under the same condition. 11: end if 
+
+12: if the prompt still exceeds B then 
+
+13: return Render( A)
+
+14: end if 
+
+15: Within each table, sort unselected columns by decreasing score (breaking ties by source order). 16: loop 
+
+17: Form a round U from the next unselected column of every table. 18: if U = ∅ or tokens( P (Render( A ∪ U ), q, h )) > B 
+
+then 
+
+19: break 
+
+20: end if 
+
+21: A ← A ∪ U
+
+22: end loop 
+
+23: Render C from A in source schema order; show a foreign-key relation only when both endpoints are retained. 24: return C
+
+For database reranking, hint handling is applied around the shared renderer. If the prompt with-out schema already exceeds B when h is included, MDB-Link replaces the hint with No hint . After schema construction, it applies the same replace-ment if the complete prompt still exceeds B. A candidate database whose prompt remains over the cap receives no reranking score and is placed after scored candidates. 
+
+Algorithm 3 Selected-Table Context Procedure for Column Grounding 
+
+Input: Predicted database ˆD, selected tables ˆT , table-stage retained records AT , question q, hint h, column prompt 
+
+PC , prompt cap B
+
+Output: Column-grounding schema context CC
+
+1: if ˆT = ∅ then return Render( AT )
+
+2: Let Afull contain every column of tables in ˆT .3: if Afull ̸ = ∅ and tokens( PC (Render( Afull ), q, h )) ≤ B
+
+then return Render( Afull )
+
+4: AC ← { c ∈ AT : table( c) ∈ ˆT } 
+
+5: if AC = ∅ then AC ← AT
+
+6: if AC = ∅ then AC ← Afull 
+
+7: return Render( AC )
+
+D Fixed Implementation Settings 
+
+For database localization, both retrieval rounds use the HRC ratio α = 0 .1. The first- and second-round retrieval caps are β1 = 500 and β2 = 50 , re-spectively. PruneDB uses the minimum hit count 
+
+η = 2 , the similarity quantile ρ = 0 .8, and the cap 
+
+μ = 10 . The second round is triggered when more than κ = 3 databases remain, in which case the reranker retains the top-κ databases as its search scope. Table 6 reports the remaining fixed hyperparam-eter and inference settings used in all experiments. 
+
+E Detailed Dataset Statistics 
+
+Table 7 reports complementary statistics on schema scale and the gold schema required per example. 
+
+F Complete Efficiency Results 
+
+Table 8 reports both 14B backbones. Token us-age is compared only within the same dataset and backbone and is interpreted jointly with online runtime and schema-linking quality. MDB-Link is faster than LinkAlign and AutoLink in all six matched comparisons. Compared with LinkAlign, it improves LA in all six comparisons, EM in five, and Recall in four; its token usage is lower in four comparisons but higher on Spider2-Snow un-der both backbones. Compared with AutoLink, MDB-Link uses fewer tokens in four comparisons and more on BIRD-dev under both backbones, while AutoLink attains higher Recall with substan-tially broader schemas. Single-Prompt has the low-est runtime where feasible, but MDB-Link yields stronger schema-linking quality and uses fewer to-kens on MMQA under both backbones; Single-Prompt cannot process Spider2-Snow. Overall, MDB-Link provides a favorable balance between 17 Component Fixed settings Prompting Database reranking uses the zero-shot binary prompt; table selection and column-wise grounding use the few-shot templates. Schema context construc-tion Maximum LLM input length L = 110 ,000 tokens; complete-prompt cap min( ⌊0.85 L⌋, L −  
+
+> 512) .Spider-Agent The Agent receives only the schema items returned by the linker. It uses a local Transformers backend with bfloat16 precision with an 80,000-token input limit, a 4,096-token output limit, a 12,000-token history budget, at most 20 rounds, two retries after a failed model call, one rollout per example, temperature 0, and random seed 42. Model use All models are used for inference without parameter updates. Applicable settings are fixed across datasets, and the Spider-Agent settings are fixed across linkers.
+
+Table 6: Fixed hyperparameter and inference settings.                 
+
+> Dataset Tables#/Cols# per DB Cols# per Table Gold Tables# per Sample Gold Cols# per Sample MMQA 5.11/26.71 5.22 2.21 5.28 Spider2-Snow 36.57/1,930.96 52.81 2.63 9.88 BIRD (dev) 6.82/72.55 10.64 1.94 4.47
+
+Table 7: Detailed statistics of the three evaluation datasets. Cols# denotes the number of columns; BIRD refers to the development split.                                                               
+
+> Spider2-Snow MMQA BIRD-dev Method Tok. Time Tok. Time Tok. Time LinkAlign (M3) 476 743.28 122 169.25 145 176.43 LinkAlign (Q2.5) 223 409.72 118 119.35 122 127.62 AutoLink (M3) 635 637.68 83 105.49 38 131.03 AutoLink (Q2.5) 652 465.42 118 64.84 48 45.22 Single-Prompt (M3) ––48 11.37 14 3.79 Single-Prompt (Q2.5) ––45 12.28 13 3.82
+> MDB-Link (M3) 495 291.64 41 18.33 58 13.74
+> MDB-Link (Q2.5) 515 369.17 40 14.15 58 12.30 Dense Retrieval 01.18 01.16 –0.03
+
+Table 8: Complete efficiency results under Ministral-3-14B (M3) and Qwen2.5-14B (Q2.5). Tokens are the average LLM token count per example, reported in thousands, and Time is the average runtime per example in seconds. Token values are comparable only within the same dataset and backbone; a dash denotes unavailable or infeasible results. Dense Retrieval is retrieval-only. 
+
+online efficiency and schema-linking quality rather than uniformly minimizing token usage or runtime. 
+
+G Complete Spider-Agent Results 
+
+Table 9 reports the complete downstream results for the Ministral-3-14B and Qwen2.5-14B schema-linking backbones. Spider-Agent and its configura-tion are fixed across methods, so the only changing input is the schema returned by each linker. Across the two backbones, MDB-Link improves EX over LinkAlign in all six dataset–backbone comparisons. On MMQA and BIRD-dev, it also uses fewer SQL-generation tokens and less time under both backbones. The efficiency pattern on Spider2-Snow is backbone-dependent: MDB-Link is faster but uses more tokens with Qwen2.5-14B, whereas it uses more tokens and time with Ministral-3-14B. The EX gains therefore remain consistent even when the downstream cost advan-tage does not. Compared with AutoLink, MDB-Link obtains higher EX on Spider2-Snow under both backbones while using 43.8–46.2% fewer tokens and less time. AutoLink instead achieves higher EX on MMQA and BIRD-dev, but MDB-Link uses 26.6–52.6% fewer tokens and is faster in three of these four comparisons. Thus, AutoLink’s broader schemas can recover useful evidence in some cases, but consistently increase token demand. Overall, the results support evaluating schema linkers jointly by execution accuracy, token use, and runtime rather than treating linked-schema size as a sufficient pre-dictor of downstream behavior. 18 Spider2-Snow MMQA BIRD-dev Model Method EX Tok. Time EX Tok. Time EX Tok. Time M3 LinkAlign 3.33 50,959 160.14 60.07 6,128 24.53 55.74 5,995 23.27 M3 AutoLink 4.17 100,365 175.72 69.57 7,127 22.27 57.30 11,660 23.21 M3 MDB-Link 6.67 56,429 168.60 61.45 5,231 21.11 55.80 5,920 22.45                               
+
+> Q2.5 LinkAlign 7.50 46,235 181.56 55.40 7,169 30.58 50.00 7,248 26.47 Q2.5 AutoLink 7.50 103,307 163.50 69.18 7,662 22.79 57.69 12,824 25.71 Q2.5 MDB-Link 8.30 55,532 144.58 63.04 5,567 25.71 55.35 6,077 21.53
+
+Table 9: Complete Spider-Agent results under Ministral-3-14B (M3) and Qwen2.5-14B (Q2.5) schema-linking backbones. EX is a percentage; Tokens and Time are the average Spider-Agent token count and runtime per example, with runtime reported in seconds. Bold indicates the best result within each backbone and column.                                                                                                
+
+> Model Dataset Variant LA EM Recall M3 Spider2-Snow MDB-Link 60.00 1.67 39.12
+> M3 Spider2-Snow w/o DB reranking 52.50 (-7.50) 3.33 (+1.66) 18.80 (-20.32) M3 Spider2-Snow w/o table selection 60.00 (0.00) 1.67 (0.00) 21.25 (-17.87) M3 MMQA MDB-Link 90.54 43.00 83.22
+> M3 MMQA w/o DB reranking 76.06 (-14.48) 36.54 (-6.46) 69.15 (-14.07) M3 MMQA w/o table selection 90.54 (0.00) 35.93 (-7.07) 81.79 (-1.43) M3 BIRD-dev MDB-Link 98.89 39.05 82.72
+> M3 BIRD-dev w/o DB reranking 96.48 (-2.41) 36.07 (-2.98) 79.19 (-3.53) M3 BIRD-dev w/o table selection 98.89 (0.00) 35.14 (-3.91) 86.29 (+3.57) Q2.5 Spider2-Snow MDB-Link 65.00 9.17 32.10
+> Q2.5 Spider2-Snow w/o DB reranking 52.50 (-12.50) 5.83 (-3.34) 16.78 (-15.32) Q2.5 Spider2-Snow w/o table selection 65.00 (0.00) 7.50 (-1.67) 21.59 (-10.51) Q2.5 MMQA MDB-Link 89.71 51.41 86.32
+> Q2.5 MMQA w/o DB reranking 75.29 (-14.42) 42.84 (-8.57) 71.11 (-15.21) Q2.5 MMQA w/o table selection 89.71 (0.00) 42.14 (-9.27) 84.05 (-2.27) Q2.5 BIRD-dev MDB-Link 98.89 38.01 81.19
+> Q2.5 BIRD-dev w/o DB reranking 95.20 (-3.69) 36.83 (-1.18) 78.77 (-2.42) Q2.5 BIRD-dev w/o table selection 98.89 (0.00) 36.25 (-1.76) 80.20 (-0.99)
+
+Table 10: Complete ablation results under Ministral-3-14B (M3) and Qwen2.5-14B (Q2.5). LA, EM, and Recall are percentages; parentheses report changes in percentage points from each bold MDB-Link reference row. 
+
+H Complete Ablation Results 
+
+Table 10 reports the complete ablation results for Ministral-3-14B and Qwen2.5-14B. The two abla-tions follow the definitions in the main paper: w/o DB reranking replaces the LLM reranker with the support-based pruning order, and w/o table selec-tion grounds columns directly over the predicted database without first restricting the table scope. Removing database reranking lowers LA and Recall in all six dataset–backbone comparisons, with LA decreases of 2.41–14.48 points and Recall decreases of 2.42–20.32 points. EM also decreases in five comparisons; the exception is Spider2-Snow with Ministral-3-14B, where EM increases from 1.67 to 3.33 despite substantial reductions in LA and Recall. These results consistently associate the reranker with more reliable database localization, while also showing that no single column-set metric fully characterizes localization quality. Removing table selection does not change LA because it operates after database localization. It reduces EM in five comparisons and leaves it un-changed in one, while Recall decreases in five of the six comparisons. The effect is largest on Spider2-Snow, where Recall falls by 17.87 points with Ministral-3-14B and 10.51 points with Qwen2.5-14B. The exception is BIRD-dev with Ministral-3-14B, where the broader table scope raises Recall but lowers EM. Overall, table selec-tion generally makes column grounding more re-liable by removing distractor tables, although the BIRD-dev result also reflects the expected trade-off between broader coverage and exact schema selection. 19
