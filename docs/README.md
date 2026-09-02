@@ -48,17 +48,17 @@
 <section class="dpr-home-dashboard-card dpr-home-report-card">
   <div class="dpr-home-dashboard-header">
     <div>
-      <span class="dpr-home-dashboard-kicker">2026-09-01</span>
+      <span class="dpr-home-dashboard-kicker">2026-09-02</span>
       <h3 class="dpr-home-dashboard-title">今日汇总</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">共 13 篇</strong>
+    <strong class="dpr-home-dashboard-count">共 0 篇</strong>
   </div>
   <dl class="dpr-home-dashboard-stats">
     <div class="dpr-home-dashboard-stat"><dt>累计更新</dt><dd>1 次</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>5</dd></div>
-    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>8</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>精读</dt><dd>0</dd></div>
+    <div class="dpr-home-dashboard-stat"><dt>速读</dt><dd>0</dd></div>
   </dl>
-  <p class="dpr-home-dashboard-body">最近更新：2026-09-01 21:29:37 UTC<br>状态：成功</p>
+  <p class="dpr-home-dashboard-body">最近更新：2026-09-02 21:49:31 UTC<br>状态：成功</p>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-brief-card">
   <div class="dpr-home-dashboard-header">
@@ -69,9 +69,7 @@
     <strong class="dpr-home-dashboard-count">AI</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<p>今日13篇论文聚焦AI查询编译与结构化数据检索，精读5篇、速读8篇。</p>
-<p>最值得看：双8分《AI Query Compilation》统一优化查询执行，《Guided Table Retrieval》提升数据搜索；速读中Text-to-SQL的ReAct简化架构与TraceSQL验证同样亮眼。</p>
-<p>下一步可优先尝试轻量级Text-to-SQL方案，并结合追踪验证提升可靠性。</p>
+<p>今日无新推荐，系统未产出可展示论文。</p>
   </div>
 </section>
 <section class="dpr-home-dashboard-card dpr-home-deep-card">
@@ -80,12 +78,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">精读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">5 篇</strong>
+    <strong class="dpr-home-dashboard-count">0 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="AI Query Compilation for Unified and Optimized Execution">AI Query Compilation for Unified and Optimized Execution</span></li><li><span class="dpr-home-dashboard-paper-title" title="Guided Table Retrieval for Structured Data Search">Guided Table Retrieval for Structured Data Search</span></li><li><span class="dpr-home-dashboard-paper-title" title="GEM: A Generative Embedding Model Bridging Reasoning and Retrieval">GEM: A Generative Embedding Model Bridging Reasoning and Retrieval</span></li></ul>
+<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">sdl <strong>5</strong></span></div>
+
 </section>
 <section class="dpr-home-dashboard-card dpr-home-skim-card">
   <div class="dpr-home-dashboard-header">
@@ -93,12 +91,12 @@
       <span class="dpr-home-dashboard-kicker">今日累计</span>
       <h3 class="dpr-home-dashboard-title">速读推荐</h3>
     </div>
-    <strong class="dpr-home-dashboard-count">8 篇</strong>
+    <strong class="dpr-home-dashboard-count">0 篇</strong>
   </div>
   <div class="dpr-home-dashboard-body">
-<ul class="dpr-home-dashboard-paper-list"><li><span class="dpr-home-dashboard-paper-title" title="DEPT: Document Embedding Preservation Tuning for Unified Query Expansion and Retrieval">DEPT: Document Embedding Preservation Tuning for Unified Query Expansion and Retrieval</span></li><li><span class="dpr-home-dashboard-paper-title" title="TraceSQL: Traceable Answerability Estimation for Reference-Free Text-to-SQL Verification">TraceSQL: Traceable Answerability Estimation for Reference-Free Text-to-SQL Verification</span></li><li><span class="dpr-home-dashboard-paper-title" title="Iteration Without Elaboration: A Simple ReAct Architecture Suffices for Text-to-SQL Generation">Iteration Without Elaboration: A Simple ReAct Architecture Suffices for Text-to-SQL Generation</span></li></ul>
+<p class="dpr-home-dashboard-empty">今日暂无推荐。</p>
   </div>
-  <div class="dpr-home-dashboard-tags"><span class="dpr-home-dashboard-tag">sdl <strong>8</strong></span></div>
+
 </section>
 </div>
 
